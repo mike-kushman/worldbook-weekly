@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Methodology — worldbook.earth</title>
-<meta name="description" content="How worldbook.earth is built: every arc traces to a named public dataset. Full source list and data-integrity principles.">
+<meta name="description" content="How worldbook.earth is built: every layer traces to named public sources. Full catalog of flow, choropleth, and historical layers with data-integrity principles.">
 <style>
   :root{
     --bg:#070b12; --panel:rgba(16,21,30,.92); --chip:#141b26;
@@ -18,21 +18,26 @@
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     line-height:1.6; -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:820px; margin:0 auto; padding:64px 24px 120px}
+  .wrap{max-width:840px; margin:0 auto; padding:64px 24px 120px}
   a{color:var(--accent); text-decoration:none}
   a:hover{text-decoration:underline}
   .back{display:inline-block; margin-bottom:40px; color:var(--muted); font-size:14px}
   h1{font-size:32px; line-height:1.2; margin:0 0 8px; letter-spacing:-.02em}
   .sub{color:var(--muted); font-size:17px; margin:0 0 48px}
-  h2{font-size:22px; margin:48px 0 12px; letter-spacing:-.01em}
-  h3{font-size:15px; margin:28px 0 8px; color:var(--accent); text-transform:uppercase; letter-spacing:.05em; font-weight:600}
+  h2{font-size:22px; margin:52px 0 12px; letter-spacing:-.01em}
+  h3{font-size:14px; margin:24px 0 8px; color:var(--accent); text-transform:uppercase; letter-spacing:.06em; font-weight:600}
   p{margin:0 0 16px; color:#c4cfdd}
   strong{color:var(--ink)}
+  em{color:#dce8f4; font-style:italic}
   .rule{
     background:var(--panel); border:1px solid var(--line); border-radius:12px;
     padding:24px 28px; margin:32px 0; font-size:18px; line-height:1.5;
   }
   .rule strong{color:var(--accent)}
+  .modes{display:grid; grid-template-columns:1fr; gap:14px; margin:24px 0}
+  .mode{background:var(--chip); border:1px solid var(--line); border-radius:10px; padding:18px 20px}
+  .mode h4{margin:0 0 6px; font-size:16px; color:var(--ink)}
+  .mode p{margin:0; font-size:14.5px; color:var(--muted)}
   .callout{
     border-left:3px solid var(--warm); background:rgba(232,160,106,.06);
     padding:18px 22px; margin:28px 0; border-radius:0 8px 8px 0;
@@ -40,15 +45,15 @@
   .callout h2{margin-top:0; color:var(--warm); font-size:19px}
   ol.tiers{padding-left:20px; margin:16px 0}
   ol.tiers li{margin-bottom:14px; color:#c4cfdd}
-  .sources{margin:12px 0 0}
-  .grp{margin-bottom:24px}
-  .grp .label{font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px}
-  .src{
+  .grp{margin-bottom:20px}
+  .grp .label{font-size:13px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin-bottom:8px; font-weight:600}
+  .src, .lyr{
     display:inline-block; background:var(--chip); border:1px solid var(--line);
-    border-radius:6px; padding:5px 11px; margin:0 6px 6px 0; font-size:13.5px;
+    border-radius:6px; padding:5px 11px; margin:0 6px 6px 0; font-size:13px;
     color:#dce8f4;
   }
-  .src:hover{border-color:var(--accent); text-decoration:none}
+  a.src:hover{border-color:var(--accent); text-decoration:none}
+  .lyr{color:var(--muted)}
   footer{margin-top:64px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:14px}
 </style>
 </head>
@@ -57,13 +62,13 @@
   <a class="back" href="/">← back to the globe</a>
 
   <h1>How worldbook.earth is built</h1>
-  <p class="sub">Every arc traces to a named public dataset. Nothing here is drawn from intuition.</p>
+  <p class="sub">Every layer traces to named public sources. Nothing here is drawn from intuition.</p>
 
-  <p>Worldbook is a layered flow-map of the world. Each layer is a different kind of global
-  flow — remittances, trade, grain, oil, refugees, student migration, submarine cables, and the
-  illicit side too: drugs, arms, wildlife, counterfeit goods. Every arc you see is drawn from a
-  named, public dataset. If a flow appears on the map, a source reports it. If a number sets an
-  arc's weight, that number comes from the citation attached to the layer.</p>
+  <p>Worldbook is a layered atlas of the world — 49 data layers you can switch on and off, spanning
+  how the world connects (flows of money, goods, people, and information), how countries compare
+  (development, politics, health, culture), and how populations have moved across four centuries of
+  history. Every layer is drawn from named, public data. If something appears on the map, a source
+  reports it. If a number sets a value, that number comes from the citation attached to the layer.</p>
 
   <p>This page exists so you never have to take that on faith. Everything below is checkable.</p>
 
@@ -72,108 +77,163 @@
     fabricated. Absence is not evidence of absence.
   </div>
 
-  <h2>What the arc weights mean — and what they don't</h2>
-  <p>Not every layer measures the same kind of thing, and pretending otherwise would be
-  dishonest. There are three tiers, and worldbook labels each one in the app:</p>
-  <ol class="tiers">
-    <li><strong>Hard quantities.</strong> Remittances, debt, migration, and trade carry real
-    figures — US$ billions, millions of people — from the bilateral matrices that report them.
-    An arc's thickness is proportional to that figure.</li>
-    <li><strong>Route prominence.</strong> Oil, grain, minerals, timber, flights, shipping,
-    students, and refugees show the <em>major</em> documented corridors, weighted by relative
-    scale. These are the principal flows, not an exhaustive census of every route.</li>
-    <li><strong>Relative, seizure-based signal.</strong> Human trafficking, wildlife trafficking,
-    counterfeit goods, and medical brain drain encode <em>relative corridor prominence</em> —
-    because the underlying data is detections, seizures, and reported cases, not a clean count
-    of the true flow. An arc here means "this corridor shows up prominently in enforcement
-    data," not "this many units moved."</li>
-  </ol>
-  <p>Submarine cables are shown at uniform weight; for fibre routes, thickness carries no
-  meaning.</p>
-
-  <div class="callout">
-    <h2>The thing critics get wrong: absence is not evidence of absence</h2>
-    <p>This is the single most important caveat on the entire map, and it applies hardest to the
-    illicit layers.</p>
-    <p>A thick arms-trafficking arc into a country means the Small Arms Survey and UNODC
-    <strong>documented flows there.</strong> A thin arc, or no arc, very often means <strong>no
-    data was reported</strong> — not that no trafficking occurs. Enforcement data reflects where
-    monitoring, seizures, and reporting happen, which is uneven across the world for reasons that
-    have nothing to do with the true scale of the activity. Countries with strong reporting
-    regimes can look "worse" precisely because they measure and disclose more.</p>
-    <p style="margin-bottom:0">So: <strong>do not read these maps as moral rankings of
-    countries.</strong> They are maps of where data exists. That's a real and useful thing to
-    see — but it is not the same as a map of where the underlying activity happens, and worldbook
-    does not claim it is.</p>
+  <h2>Three kinds of layer</h2>
+  <p>Worldbook shows data three different ways, and they answer different questions:</p>
+  <div class="modes">
+    <div class="mode">
+      <h4>Flow layers (animated arcs)</h4>
+      <p>Great-circle arcs between countries: remittances, trade, oil &amp; gas, grain, minerals,
+      timber, aid, refugees, students, flights, shipping, submarine cables, and the illicit
+      layers — drugs, arms, human trafficking, wildlife, counterfeit goods — plus natural systems
+      (ocean currents, bird flyways, Saharan dust) and historic routes (Silk Road, Age of
+      Exploration).</p>
+    </div>
+    <div class="mode">
+      <h4>Choropleth layers (shaded countries)</h4>
+      <p>Countries colored by a value: Human Development Index, GDP per capita, population density,
+      internet use, CO₂ per capita, life expectancy, under-5 and maternal mortality, physicians per
+      1,000, health spending, HIV prevalence, water and sanitation access, government debt, plus
+      categorical maps of religion, language family, climate, government type, regime type, and
+      LGBTQ+ legal status.</p>
+    </div>
+    <div class="mode">
+      <h4>Historical migration (animated over time)</h4>
+      <p>A time-scrubbed layer of 221 individually-sourced migration edges spanning ~400 years —
+      the trans-Atlantic slave trade, Partition of India, the Irish Famine emigration, European
+      waves to the Americas, guest-worker programs, and modern refugee movements from Vietnam,
+      Syria, Venezuela, and Myanmar. Each edge carries its own citation.</p>
+    </div>
   </div>
 
-  <h2>Territorial units</h2>
-  <p>Borders and territorial units follow the reporting conventions of whichever source supplies
-  a given layer's data. Taiwan, Hong Kong, Kosovo, Western Sahara, and other contested or special
-  cases appear as their <strong>cited sources report them</strong> — sometimes as distinct
-  reporting economies, sometimes folded into a larger state, depending on the dataset.</p>
-  <p>This reflects data provenance. It is not a sovereignty claim, and it is not an editorial
-  position on any territorial dispute. Where a source reports a unit separately, worldbook keeps
-  it separate rather than silently overriding the source; where a source consolidates, worldbook
-  follows.</p>
+  <h2>What the values mean — and what they don't</h2>
+  <p>Not every layer measures the same kind of thing, and pretending otherwise would be dishonest.
+  Broadly there are three tiers, and worldbook labels each in the app:</p>
+  <ol class="tiers">
+    <li><strong>Hard quantities.</strong> Remittances, debt, migration, trade, and the numeric
+    choropleths (HDI, GDP, life expectancy, and the rest) carry real reported figures. An arc's
+    thickness or a country's shade is proportional to that figure.</li>
+    <li><strong>Route prominence.</strong> Oil, grain, minerals, timber, flights, shipping,
+    students, and refugees show the <em>major</em> documented corridors, weighted by relative
+    scale — the principal flows, not an exhaustive census of every route.</li>
+    <li><strong>Relative, seizure-based signal.</strong> Human trafficking, wildlife trafficking,
+    counterfeit goods, and medical brain drain encode <em>relative corridor prominence</em> —
+    because the underlying data is detections, seizures, and reported cases, not a clean count of
+    the true flow. An arc here means "this corridor shows up prominently in the data," not "this
+    many units moved."</li>
+  </ol>
+  <p>Submarine cables are shown at uniform weight; for fibre routes, thickness carries no meaning.
+  The categorical choropleths (religion, regime type, LGBTQ+ status, etc.) show a classification,
+  not a quantity — see below.</p>
+
+  <div class="callout">
+    <h2>The most important caveat: absence is not evidence of absence</h2>
+    <p>This applies hardest to the illicit layers. A thick arms-trafficking arc into a country means
+    the Small Arms Survey and UNODC <strong>documented flows there.</strong> A thin arc, or no arc,
+    very often means <strong>no data was reported</strong> — not that no trafficking occurs.
+    Enforcement data reflects where monitoring, seizures, and reporting happen, which is uneven
+    across the world for reasons unrelated to the true scale of the activity. Countries with strong
+    reporting regimes can look "worse" precisely because they measure and disclose more.</p>
+    <p style="margin-bottom:0">So <strong>do not read these maps as moral rankings of
+    countries.</strong> They are maps of where data exists — a real and useful thing to see, but
+    not the same as a map of where the underlying activity happens, and worldbook does not claim it
+    is.</p>
+  </div>
+
+  <h2>Classifications, borders, and contested cases</h2>
+  <p>Some layers assign each country to a <em>category</em> rather than a number — regime type,
+  government type, religion, LGBTQ+ legal status, language family. These follow the classification
+  of the cited source (V-Dem, EIU, Freedom House, ILGA World, Pew, and others). Worldbook reports
+  what those sources report; the categories are theirs, not editorial positions of this project.
+  Where sources disagree — and on regime type and rights they sometimes do — the map reflects the
+  named source for that layer, and reasonable people can and do dispute those classifications.</p>
+  <p>The same principle governs borders. Territorial units — Taiwan, Hong Kong, Kosovo, Western
+  Sahara, Palestine, and others — appear as their cited sources report them, sometimes as distinct
+  reporting economies and sometimes consolidated, depending on the dataset. This reflects data
+  provenance. It is not a sovereignty claim.</p>
+
+  <h2>A note on source quality</h2>
+  <p>Worldbook mixes source tiers, and it's honest about it. Most layers rest on UN agencies,
+  national statistical offices, and peer-reviewed research bodies. A few — particularly some edges
+  in the historical-migration layer, where clean bilateral figures simply don't exist for the 1600s
+  and 1700s — draw on well-established secondary summaries, including encyclopedic sources, on top
+  of primary databases like SlaveVoyages. The app tracks a confidence level per layer. Where the
+  data is softer, the layer says so rather than dressing an estimate up as a hard count.</p>
 
   <h2>Where the data comes from</h2>
-  <p>Worldbook currently renders 26 flow layers drawn from 34 sources — every one a UN agency, a
-  national statistical office, or an established research body. Each layer links its own sources
-  inside the app; the full set:</p>
+  <p>The full set of named sources across all 49 layers:</p>
 
-  <div class="sources">
-    <div class="grp">
-      <div class="label">Money &amp; trade</div>
-      <a class="src" href="https://www.knomad.org/data/remittances" target="_blank" rel="noopener">World Bank / KNOMAD — remittance matrix</a>
-      <a class="src" href="https://www.worldbank.org/en/programs/debt-statistics/ids" target="_blank" rel="noopener">World Bank — International Debt Statistics</a>
-      <a class="src" href="https://www.aiddata.org/china-official-finance" target="_blank" rel="noopener">AidData — Chinese overseas finance</a>
-      <a class="src" href="https://comtradeplus.un.org/" target="_blank" rel="noopener">UN Comtrade</a>
-      <a class="src" href="https://www.wto.org/english/res_e/statis_e/statis_e.htm" target="_blank" rel="noopener">WTO — Trade Statistical Review</a>
-      <a class="src" href="https://unctad.org/rmt" target="_blank" rel="noopener">UNCTAD — Review of Maritime Transport</a>
-    </div>
-    <div class="grp">
-      <div class="label">Resources</div>
-      <a class="src" href="https://www.iea.org/topics/oil-market-report" target="_blank" rel="noopener">IEA — Oil Market Report</a>
-      <a class="src" href="https://www.eia.gov/petroleum/" target="_blank" rel="noopener">U.S. EIA — Petroleum</a>
-      <a class="src" href="https://www.fao.org/giews/reports/food-outlook/en/" target="_blank" rel="noopener">FAO — Food Outlook</a>
-      <a class="src" href="https://www.fas.usda.gov/data" target="_blank" rel="noopener">USDA — Foreign Agricultural Service</a>
-      <a class="src" href="https://www.usgs.gov/centers/national-minerals-information-center" target="_blank" rel="noopener">USGS — Mineral Commodity Summaries</a>
-      <a class="src" href="https://www.fao.org/forestry/statistics/en/" target="_blank" rel="noopener">FAO — Forest Products Statistics</a>
-    </div>
-    <div class="grp">
-      <div class="label">People</div>
-      <a class="src" href="https://www.unhcr.org/refugee-statistics/" target="_blank" rel="noopener">UNHCR — Refugee Data</a>
-      <a class="src" href="https://www.un.org/development/desa/pd/content/international-migrant-stock" target="_blank" rel="noopener">UN DESA — Migrant Stock</a>
-      <a class="src" href="https://worldmigrationreport.iom.int/what-we-do/world-migration-report-2024" target="_blank" rel="noopener">IOM — World Migration Report 2024</a>
-      <a class="src" href="https://uis.unesco.org/en/uis-student-flow" target="_blank" rel="noopener">UNESCO UIS — Tertiary Student Flow</a>
-      <a class="src" href="https://www.who.int/publications/i/item/9789241511131" target="_blank" rel="noopener">WHO — Health Workforce</a>
-      <a class="src" href="https://www.oecd.org/en/topics/health-workforce.html" target="_blank" rel="noopener">OECD — Migration of Health Workers</a>
-    </div>
-    <div class="grp">
-      <div class="label">Illicit flows</div>
-      <a class="src" href="https://www.unodc.org/unodc/en/data-and-analysis/world-drug-report.html" target="_blank" rel="noopener">UNODC — World Drug Report</a>
-      <a class="src" href="https://www.euda.europa.eu/publications/european-drug-report_en" target="_blank" rel="noopener">EMCDDA — European Drug Report</a>
-      <a class="src" href="https://www.smallarmssurvey.org/" target="_blank" rel="noopener">Small Arms Survey</a>
-      <a class="src" href="https://www.unodc.org/unodc/en/firearms-protocol/firearms-study.html" target="_blank" rel="noopener">UNODC — Firearms Trafficking</a>
-      <a class="src" href="https://www.unodc.org/unodc/en/human-trafficking/global-report-on-trafficking-in-persons.html" target="_blank" rel="noopener">UNODC — Trafficking in Persons 2024</a>
-      <a class="src" href="https://www.unodc.org/unodc/en/data-and-analysis/wildlife.html" target="_blank" rel="noopener">UNODC — Wildlife Crime Report</a>
-      <a class="src" href="https://cites.org/" target="_blank" rel="noopener">CITES — trade &amp; seizure data</a>
-      <a class="src" href="https://www.oecd.org/gov/risk/trade-in-counterfeit-and-pirated-goods-g2g9f533-en.htm" target="_blank" rel="noopener">OECD/EUIPO — Counterfeit &amp; Pirated Goods</a>
-    </div>
-    <div class="grp">
-      <div class="label">Infrastructure &amp; natural systems</div>
-      <a class="src" href="https://www.submarinecablemap.com/" target="_blank" rel="noopener">TeleGeography — Submarine Cable Map</a>
-      <a class="src" href="https://www.iata.org/en/publications/economics/" target="_blank" rel="noopener">OAG / IATA — air traffic</a>
-      <a class="src" href="https://oceanservice.noaa.gov/education/tutorial_currents/" target="_blank" rel="noopener">NOAA — Ocean currents</a>
-      <a class="src" href="https://www.cms.int/en/page/flyways" target="_blank" rel="noopener">CMS — Flyways</a>
-      <a class="src" href="https://earthobservatory.nasa.gov/images/event/86353/saharan-dust" target="_blank" rel="noopener">NASA Earth Observatory — Saharan dust</a>
-    </div>
-    <div class="grp">
-      <div class="label">Historic routes</div>
-      <a class="src" href="https://en.unesco.org/silkroad/" target="_blank" rel="noopener">UNESCO — Silk Roads Programme</a>
-      <a class="src" href="https://www.britannica.com/topic/European-exploration" target="_blank" rel="noopener">Britannica — Age of Discovery</a>
-    </div>
+  <div class="grp">
+    <div class="label">Money, trade &amp; aid</div>
+    <a class="src" href="https://www.knomad.org/data/remittances" target="_blank" rel="noopener">World Bank / KNOMAD</a>
+    <a class="src" href="https://www.worldbank.org/en/programs/debt-statistics/ids" target="_blank" rel="noopener">World Bank Int'l Debt Statistics</a>
+    <a class="src" href="https://data.worldbank.org/" target="_blank" rel="noopener">World Bank Open Data</a>
+    <a class="src" href="https://comtradeplus.un.org/" target="_blank" rel="noopener">UN Comtrade</a>
+    <a class="src" href="https://www.wto.org/english/res_e/statis_e/statis_e.htm" target="_blank" rel="noopener">WTO</a>
+    <a class="src" href="https://unctad.org/rmt" target="_blank" rel="noopener">UNCTAD</a>
+    <a class="src" href="https://www.oecd.org/dac/" target="_blank" rel="noopener">OECD DAC (aid)</a>
+    <a class="src" href="https://www.jica.go.jp/english/" target="_blank" rel="noopener">JICA</a>
+  </div>
+  <div class="grp">
+    <div class="label">Resources &amp; energy</div>
+    <a class="src" href="https://www.iea.org/topics/oil-market-report" target="_blank" rel="noopener">IEA</a>
+    <a class="src" href="https://www.eia.gov/petroleum/" target="_blank" rel="noopener">U.S. EIA</a>
+    <a class="src" href="https://www.fao.org/faostat/" target="_blank" rel="noopener">FAO / FAOSTAT</a>
+    <a class="src" href="https://www.fas.usda.gov/data" target="_blank" rel="noopener">USDA FAS</a>
+    <a class="src" href="https://www.usgs.gov/centers/national-minerals-information-center" target="_blank" rel="noopener">USGS</a>
+  </div>
+  <div class="grp">
+    <div class="label">People &amp; migration</div>
+    <a class="src" href="https://www.unhcr.org/refugee-statistics/" target="_blank" rel="noopener">UNHCR</a>
+    <a class="src" href="https://www.un.org/development/desa/pd/content/international-migrant-stock" target="_blank" rel="noopener">UN DESA Migrant Stock</a>
+    <a class="src" href="https://worldmigrationreport.iom.int/" target="_blank" rel="noopener">IOM World Migration Report</a>
+    <a class="src" href="https://uis.unesco.org/en/uis-student-flow" target="_blank" rel="noopener">UNESCO UIS</a>
+    <a class="src" href="https://www.migrationpolicy.org/" target="_blank" rel="noopener">Migration Policy Institute</a>
+    <a class="src" href="https://www.slavevoyages.org/" target="_blank" rel="noopener">SlaveVoyages Database</a>
+    <a class="src" href="https://data.unhcr.org/en/situations/venezuela" target="_blank" rel="noopener">R4V (Venezuela)</a>
+  </div>
+  <div class="grp">
+    <div class="label">Health</div>
+    <a class="src" href="https://www.who.int/data/gho" target="_blank" rel="noopener">WHO Global Health Observatory</a>
+    <a class="src" href="https://www.oecd.org/en/topics/health-workforce.html" target="_blank" rel="noopener">OECD Health</a>
+    <a class="src" href="https://data.worldbank.org/topic/health" target="_blank" rel="noopener">World Bank Health Indicators</a>
+  </div>
+  <div class="grp">
+    <div class="label">Politics, rights &amp; culture</div>
+    <a class="src" href="https://v-dem.net/" target="_blank" rel="noopener">V-Dem</a>
+    <a class="src" href="https://www.systemicpeace.org/polityproject.html" target="_blank" rel="noopener">Polity Project</a>
+    <a class="src" href="https://freedomhouse.org/" target="_blank" rel="noopener">Freedom House</a>
+    <a class="src" href="https://www.eiu.com/n/campaigns/democracy-index-2024/" target="_blank" rel="noopener">EIU Democracy Index</a>
+    <a class="src" href="https://ilga.org/" target="_blank" rel="noopener">ILGA World</a>
+    <a class="src" href="https://www.equaldex.com/" target="_blank" rel="noopener">Equaldex</a>
+    <a class="src" href="https://www.pewresearch.org/religion/" target="_blank" rel="noopener">Pew Research Center</a>
+    <a class="src" href="https://www.cia.gov/the-world-factbook/" target="_blank" rel="noopener">CIA World Factbook</a>
+  </div>
+  <div class="grp">
+    <div class="label">Illicit flows</div>
+    <a class="src" href="https://www.unodc.org/unodc/en/data-and-analysis/world-drug-report.html" target="_blank" rel="noopener">UNODC</a>
+    <a class="src" href="https://www.euda.europa.eu/" target="_blank" rel="noopener">EMCDDA</a>
+    <a class="src" href="https://www.smallarmssurvey.org/" target="_blank" rel="noopener">Small Arms Survey</a>
+    <a class="src" href="https://cites.org/" target="_blank" rel="noopener">CITES</a>
+    <a class="src" href="https://www.oecd.org/gov/risk/trade-in-counterfeit-and-pirated-goods-g2g9f533-en.htm" target="_blank" rel="noopener">OECD / EUIPO</a>
+  </div>
+  <div class="grp">
+    <div class="label">Infrastructure &amp; natural systems</div>
+    <a class="src" href="https://www.submarinecablemap.com/" target="_blank" rel="noopener">TeleGeography</a>
+    <a class="src" href="https://www.iata.org/" target="_blank" rel="noopener">OAG / IATA</a>
+    <a class="src" href="https://oceanservice.noaa.gov/education/tutorial_currents/" target="_blank" rel="noopener">NOAA</a>
+    <a class="src" href="https://www.cms.int/en/page/flyways" target="_blank" rel="noopener">CMS (flyways)</a>
+    <a class="src" href="https://earthobservatory.nasa.gov/" target="_blank" rel="noopener">NASA Earth Observatory</a>
+    <a class="src" href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth (geometry)</a>
+  </div>
+  <div class="grp">
+    <div class="label">Development &amp; cross-cutting</div>
+    <a class="src" href="https://hdr.undp.org/" target="_blank" rel="noopener">UNDP Human Development Report</a>
+    <a class="src" href="https://ourworldindata.org/" target="_blank" rel="noopener">Our World in Data</a>
+    <a class="src" href="https://en.unesco.org/silkroad/" target="_blank" rel="noopener">UNESCO Silk Roads</a>
+  </div>
+  <div class="grp">
+    <div class="label">National census &amp; historical archives</div>
+    <span class="lyr">ONS (UK)</span><span class="lyr">Statistics Canada</span><span class="lyr">Census of India</span><span class="lyr">Australian Bureau of Statistics</span><span class="lyr">Statistics Indonesia (BPS)</span><span class="lyr">Swiss FSO</span><span class="lyr">NISRA / NRS</span><span class="lyr">U.S. Census / DHS Yearbook</span><span class="lyr">Library of Congress</span><span class="lyr">USHMM</span><span class="lyr">National WWII Museum</span>
   </div>
 
   <h2>What this is, and what it isn't</h2>
@@ -183,13 +243,13 @@
   For that, go to the primary sources. They're all linked, on purpose.</p>
 
   <h2>Found something wrong?</h2>
-  <p>Good — that's the point. If a corridor looks incorrect, a source is misread, or a flow is
-  missing that the data would support, that's exactly the kind of correction that makes the map
-  better. The whole thing is built to be checkable so that errors are <em>findable</em>. Bring
-  the source and it gets fixed.</p>
+  <p>Good — that's the point. If a corridor looks incorrect, a source is misread, a classification
+  is off, or a flow is missing that the data would support, that's exactly the kind of correction
+  that makes the map better. The whole thing is built to be checkable so that errors are
+  <em>findable</em>. Bring the source and it gets fixed.</p>
 
   <footer>
-    worldbook.earth · built with MapLibre GL on Natural Earth geometry · data © respective sources
+    worldbook.earth · 49 layers · built with MapLibre GL on Natural Earth geometry · data © respective sources
   </footer>
 </div>
 </body>
