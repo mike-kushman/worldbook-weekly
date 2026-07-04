@@ -4,6 +4,8 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Worldbook — A Layered World Map</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23070b12'/><circle cx='16' cy='16' r='10.5' fill='%23163a5c' stroke='%236ea8fe' stroke-width='1'/><g fill='none' stroke='%236ea8fe' stroke-width='1'><ellipse cx='16' cy='16' rx='4.4' ry='10.5'/><line x1='5.5' y1='16' x2='26.5' y2='16'/></g></svg>" />
+<meta name="theme-color" content="#070b12" />
 <meta name="description" content="Worldbook is an interactive 3D globe reference work: sourced data on every country across religion, politics, economy, health, debt, trade, and migration." />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="https://worldbook.earth/" />
@@ -314,6 +316,7 @@ const SOURCE_DETAILS = {
   esri_imagery:{publisher:"Esri",label:"Esri — World Imagery map service",url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer",year:"current"},
   esri_physical:{publisher:"Esri",label:"Esri — World Physical Map service",url:"https://services.arcgisonline.com/ArcGIS/rest/services/World_Physical_Map/MapServer",year:"current"},
   natural_earth:{publisher:"Natural Earth",label:"Natural Earth — Admin 0 countries",url:"https://www.naturalearthdata.com/downloads/50m-cultural-vectors/50m-admin-0-countries-2/",year:"latest available"},
+  undp_hdi:{publisher:"UNDP",label:"UNDP — Human Development Report (Human Development Index)",url:"https://hdr.undp.org/data-center/human-development-index",year:2024},
   mit_election:{publisher:"MIT Election Data and Science Lab",label:"MIT Election Data and Science Lab — U.S. President election data",url:"https://electionlab.mit.edu/data",year:2024},
   iea_oil:{publisher:"IEA",label:"IEA — Oil Market Report",url:"https://www.iea.org/topics/oil-market-report",year:"latest available"},
   eia_petroleum:{publisher:"U.S. EIA",label:"U.S. EIA — International petroleum and other liquids data",url:"https://www.eia.gov/international/data/world",year:"latest available",aliases:["https://www.eia.gov/petroleum/"]},
@@ -427,7 +430,8 @@ const LAYER_SOURCE_KEYS = {
   lifeexp:["worldbank_lifeexp"], internet:["worldbank_internet"], govdebt:["imf_debt","worldbank_ids"],
   co2pc:["worldbank_co2"], climate:["koppen"], lgbt:["ilga","equaldex"],
   under5mort:["wb_under5"], matmort:["wb_matmort"], physicians:["wb_physicians"], healthspend:["wb_healthspend"],
-  hiv:["wb_hiv"], water:["wb_water"], sanitation:["wb_sanitation"], satellite:["esri_imagery"], topo:["esri_physical"]
+  hiv:["wb_hiv"], water:["wb_water"], sanitation:["wb_sanitation"], satellite:["esri_imagery"], topo:["esri_physical"],
+  countries:["natural_earth"], hdi:["undp_hdi"]
 };
 let EXTRA_SOURCES = [];
 function sourceRefs(keys){ return (keys||[]).map(k=>SOURCE_DETAILS[k]).filter(Boolean).map(s=>Object.assign({},s)); }
