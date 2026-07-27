@@ -1443,7 +1443,9 @@ function startSpin(){
       updateTimeLabel();
       // Earth's rotation IS time passing — 360° per simulated day. Suspended only while you
       // actively grab the globe (≈1.2 s), so manual rotation never fights the spin.
-      if(!_wbEmbed && (!_wbRequestedCenter||curatedFlowFocusDismissed) && !subOn && !dragging && (Date.now()-lastInteract>1200)){
+      // Atlas deep links keep a requested center; weekly stories use that center only as
+      // their opening frame and then resume the automatic rotation.
+      if(!_wbEmbed && (!_wbRequestedCenter||_wbRequestedStory||curatedFlowFocusDismissed) && !subOn && !dragging && (Date.now()-lastInteract>1200)){
         const c=map.getCenter(); c.lng=((c.lng - (simSpeed/60)*360*dt + 540)%360)-180; map.setCenter(c);
       }
       // day/night glides with the spin — refresh ~15 Hz so the terminator never lurches,
