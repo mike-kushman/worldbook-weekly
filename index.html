@@ -21,6 +21,7 @@
       --line:rgba(241,235,218,.18);
       --accent:#b7ce79;
       --accent-deep:#8ea14e;
+      --story-rail:clamp(370px,30vw,430px);
       --serif:Georgia,"Times New Roman",serif;
       --sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
     }
@@ -108,21 +109,21 @@
     }
 
     /* The landing page is the familiar Worldbook UI, opened on a curated live layer.
-       This parent page contributes only a compact weekly editorial note. */
+       The editorial rail occupies its own space so it never covers the map. */
     body{overflow:hidden}
     .shell{display:block;min-height:100svh;padding:0}
     .masthead,.footer{display:none}
     .stage{display:block;padding:0}
     .map-frame{
-      position:fixed;inset:0;z-index:0;width:100%;height:100svh;min-height:0;
+      position:fixed;inset:0 var(--story-rail) 0 0;z-index:0;width:auto;height:100svh;min-height:0;
       border:0;border-radius:0;box-shadow:none
     }
     .map-frame::before,.map-label,.edition{display:none}
     .map-frame iframe{filter:none}
     .story{
-      position:fixed;z-index:5;top:62px;right:16px;width:min(350px,calc(100vw - 32px));
-      padding:17px 18px 16px;background:rgba(13,18,27,.9);border:1px solid rgba(147,161,181,.25);
-      border-radius:12px;backdrop-filter:blur(14px);box-shadow:0 18px 55px rgba(0,0,0,.35)
+      position:fixed;z-index:5;inset:0 0 0 auto;width:var(--story-rail);max-width:none;
+      padding:76px 24px 28px;background:#0d121b;border-left:1px solid rgba(147,161,181,.25);
+      border-radius:0;box-shadow:-18px 0 55px rgba(0,0,0,.2);overflow-y:auto
     }
     .eyebrow{font-size:9px;margin:0 0 9px;letter-spacing:.14em;color:var(--accent)}
     .eyebrow::before{width:16px}
@@ -132,13 +133,49 @@
     .meta{margin-top:12px;gap:6px 13px;font-size:8.5px;letter-spacing:.09em}
     .actions{margin-top:13px}
     .button{min-height:35px;padding:0 12px;font-size:11px;border-radius:7px}
-    .button.secondary{display:none}
-    @media (max-width:700px){
-      .story{top:calc(57px + env(safe-area-inset-top));right:10px;width:min(310px,calc(100vw - 20px));padding:13px 14px}
-      h1{font-size:19px}
-      .dek{display:none}
-      .meta{margin-top:9px}
-      .actions{margin-top:10px}
+    .button.secondary{display:inline-flex;border-color:rgba(147,161,181,.4);color:#c8d1dc}
+    .evidence{margin-top:24px;padding-top:20px;border-top:1px solid rgba(147,161,181,.25)}
+    .evidence[hidden]{display:none}
+    .evidence-kicker{margin:0;color:var(--accent);font-size:9px;font-weight:750;letter-spacing:.14em;text-transform:uppercase}
+    .evidence h2{margin:7px 0 0;font-size:16px;line-height:1.2;letter-spacing:-.015em}
+    .reader-prompt{margin:8px 0 0;padding:11px 12px;border-left:2px solid var(--accent);background:rgba(255,255,255,.035);color:#dbe2eb;font-size:11.5px;line-height:1.5}
+    .records{display:grid;gap:9px;margin-top:15px}
+    .record{position:relative;padding:11px 12px 11px 16px;border:1px solid rgba(147,161,181,.22);border-radius:8px;background:#101722}
+    .record::before{content:"";position:absolute;inset:-1px auto -1px -1px;width:3px;border-radius:8px 0 0 8px;background:var(--record-color,var(--accent))}
+    .record-head{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
+    .record-order{display:inline-grid;place-items:center;flex:0 0 auto;width:20px;height:20px;margin:-2px 7px -2px 0;border-radius:50%;background:var(--record-color,var(--accent));color:#07110e;font-size:10px;font-weight:850}
+    .record-date{display:flex;align-items:center;min-width:0}
+    .record-period{color:var(--accent);font-size:9px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+    .record-type{flex:0 0 auto;padding:2px 5px;border:1px solid rgba(147,161,181,.3);border-radius:999px;color:#aab6c5;font-size:8px;letter-spacing:.06em;text-transform:uppercase}
+    .record h3{margin:6px 0 0;color:#eef2f6;font-size:12px;line-height:1.25}
+    .record p{margin:5px 0 0;color:#aeb9c7;font-size:10.5px;line-height:1.5}
+    .record a,.source-list a{display:inline-block;margin-top:7px;color:var(--accent);font-size:9.5px;text-decoration:none}
+    .record a:hover,.record a:focus-visible,.source-list a:hover,.source-list a:focus-visible{text-decoration:underline;outline:none}
+    .evidence details{margin-top:11px;border-top:1px solid rgba(147,161,181,.18);padding-top:11px}
+    .evidence summary{cursor:pointer;color:#dce3eb;font-size:11px;font-weight:700}
+    .evidence ul{margin:9px 0 0;padding-left:17px;color:#aeb9c7;font-size:10.5px;line-height:1.5}
+    .evidence li+li{margin-top:6px}
+    .terms{display:grid;gap:7px;margin-top:9px}
+    .term{color:#aeb9c7;font-size:10.5px;line-height:1.45}
+    .term b{color:#e5ebf1}
+    .source-list{display:grid;gap:2px;margin-top:6px}
+    @media (max-width:1100px){
+      body{overflow:auto}
+      .stage{display:grid;grid-template-rows:minmax(400px,68svh) auto;min-height:100svh;padding:0;gap:0}
+      .map-frame{position:relative;inset:auto;grid-row:1;width:100%;height:68svh;min-height:400px}
+      .story{
+        position:relative;inset:auto;grid-row:2;width:100%;min-height:32svh;
+        padding:24px 20px calc(28px + env(safe-area-inset-bottom));border-left:0;
+        border-top:1px solid rgba(147,161,181,.25);box-shadow:0 -18px 55px rgba(0,0,0,.2)
+      }
+      h1{font-size:22px}
+      .dek{display:block;font-size:12.5px}
+      .meta{margin-top:10px}
+      .actions{margin-top:12px}
+    }
+    @media (max-width:620px){
+      .stage{grid-template-rows:minmax(390px,64svh) auto}
+      .map-frame{height:64svh;min-height:390px}
     }
   </style>
 </head>
@@ -165,9 +202,14 @@
           <span id="source-name">FAO · UN Comtrade</span>
         </div>
         <div class="actions">
-          <a class="button primary" id="explore-link" href="almanac.html?layer=wood">Explore this pathway <span class="arrow">↗</span></a>
-          <a class="button secondary" href="almanac.html">Open the nostalgic globe</a>
+          <a class="button primary" id="explore-link" href="almanac.html?layer=wood">Open this story <span class="arrow">↗</span></a>
+          <a class="button secondary" id="full-layer-link" href="almanac.html?layer=wood">Show the full layer</a>
         </div>
+        <section class="evidence" id="story-evidence" aria-labelledby="evidence-title" hidden>
+          <p class="evidence-kicker">Evidence, not a verdict</p>
+          <h2 id="evidence-title">Read the record</h2>
+          <div id="evidence-content"></div>
+        </section>
       </article>
 
       <section class="map-frame" aria-label="Featured pathway map">
@@ -190,6 +232,7 @@
     const pathways = [
       {
         key:"wood", name:"Timber & wood", group:"Trade & resources", accent:"#b7ce79",
+        view:{center:[82,20],zoom:1.3},
         corridor:"The wood routes into China",
         trail:["RUS-CHN","CAN-CHN","USA-CHN","BRA-CHN","NZL-CHN","IDN-CHN","MYS-CHN","DEU-CHN","CHL-CHN","GAB-CHN","COG-CHN","MMR-CHN","PNG-CHN"],
         headline:"How forests on four continents feed one <em>manufacturing system.</em>",
@@ -197,15 +240,78 @@
         source:"FAO · UN Comtrade"
       },
       {
-        key:"arms", name:"Arms trafficking", group:"Illicit flows", accent:"#d88b67",
-        corridor:"The post-Libya arms cascade",
-        trail:["DEU-LBY","LBY-MLI","LBY-TCD"],
-        headline:"How one conflict’s weapons became a <em>regional afterlife.</em>",
-        dek:"Legacy and diverted stock moved into Libya, then outward toward Mali and Chad — a compact trail showing how weapons persist after headlines move on.",
-        source:"SIPRI · Small Arms Survey"
+        key:"basketball-departures", storyId:"basketball-departures",
+        name:"Basketball", group:"Weekly-only evidence trail", accent:"#ff9b69",
+        view:{center:[5,15],zoom:1.45},
+        corridor:"The first documented departures",
+        pathCount:4,
+        headline:"A rule sheet, a teacher, a ball: basketball <em>leaves home.</em>",
+        dek:"Follow four early, documented transmissions from the United States to Canada, France, India, and Brazil. Number and color show when each local record appears; the arcs show a named carrier or institutional route—not popularity, influence, or an inevitable march.",
+        source:"Springfield College · national archives and federations",
+        exploreLabel:"Follow the early evidence ",
+        fullLayer:"almanac.html?layer=countries",
+        fullLayerLabel:"Return to the regular atlas",
+        evidence:{
+          prompt:"What actually moved first: printed rules, a trained teacher, or a ball? Follow the records and decide what each object could—and could not—carry.",
+          records:[
+            {
+              n:1, color:"#ffe28a", period:"December 1891 / January 1892", type:"Origin record",
+              route:"Springfield, United States",
+              text:"James Naismith devised the game at the International YMCA Training School. Its thirteen rules were published in the school magazine The Triangle in January 1892, giving the new game a portable text.",
+              source:"Springfield College · history and archive", url:"https://springfield.edu/about/birthplace-of-basketball"
+            },
+            {
+              n:2, color:"#ff9b69", period:"Fall 1892", type:"Named carrier",
+              route:"Springfield → St. Stephen, Canada",
+              text:"Lyman Archibald, a player in Naismith’s first game, became physical director of the St. Stephen YMCA and organized one of Canada’s first basketball games in fall 1892. Library and Archives Canada now identifies an earlier Ottawa record, so this stop follows a named carrier rather than claiming a national first.",
+              source:"Library and Archives Canada", url:"https://thediscoverblog.com/2016/12/21/125-years-ago-today-the-invention-of-basketball-and-the-canadian-participants-in-the-first-ever-basketball-game/"
+            },
+            {
+              n:3, color:"#f16697", period:"27 December 1893", type:"Federation history",
+              route:"Springfield → Paris, France",
+              text:"The French federation identifies Springfield-trained Melvin Rideout with the game played at 14 rue de Trévise, which it treats as the first documented basketball game in France and Europe.",
+              source:"French Basketball Federation", url:"https://api.ffbb.com/assets/a3fda58c-fc18-467c-860d-ea1cb592aa8e"
+            },
+            {
+              n:4, color:"#a177e8", period:"1893–94", type:"Attributed introduction",
+              route:"Springfield → Kolkata, India",
+              text:"India’s federation credits T. Duncan Patton, a captain in Naismith’s first game, with bringing basketball to India. Library and Archives Canada uses the more cautious phrase “is said to have introduced” it in 1894, so this stop is intentionally marked as attributed rather than definitive.",
+              source:"Basketball Federation of India", url:"https://www.indiabasketball.org/basketball-in-india-growth-innovation-and-passion.html"
+            },
+            {
+              n:5, color:"#42b8c6", period:"1894–96", type:"Ball and team",
+              route:"New Haven → São Paulo, Brazil",
+              text:"Brazil’s confederation says Augusto Shaw learned the game at Yale, brought a basketball when he went to teach at Mackenzie College, and organized its first team in 1896. The date range separates the ball’s reported arrival from the surviving team record.",
+              source:"Brazilian Basketball Confederation", url:"https://cbb.com.br/basquete"
+            }
+          ],
+          limits:[
+            "This is a selected set of early, sourceable transmissions—not a complete world history and not a claim that these were the only routes.",
+            "A surviving newspaper, federation history, or archive establishes a documented record; it cannot rule out earlier informal play.",
+            "The arcs connect documented origin and destination institutions. They are schematic relationships, not reconstructed travel itineraries.",
+            "Numbers and warm-to-cool hues encode the dates of the selected records. They do not encode popularity, speed, influence, certainty, or national adoption.",
+            "The India attribution is less secure than the Springfield, Canadian, French, and Brazilian records; the map preserves that uncertainty in its wording.",
+            "For Brazil, sources distinguish Shaw’s reported arrival with a ball from the photographed organized team in 1896; the map shows a date range instead of choosing one.",
+            "Country shading marks only the places in this selected evidence chain. It says nothing about where basketball is strongest today."
+          ],
+          terms:[
+            {term:"Carrier", meaning:"A named person, printed rule set, school, or association for which a source describes movement of the game."},
+            {term:"Documented", meaning:"Supported by a surviving record available to inspect; it does not mean no earlier event occurred."},
+            {term:"Transmission", meaning:"The game or its rules moving between people or institutions; adoption and local reinvention are separate questions."}
+          ],
+          sources:[
+            {label:"Springfield College · birthplace and original rules", url:"https://springfield.edu/about/birthplace-of-basketball"},
+            {label:"Springfield College archive · January 1892 Triangle", url:"https://cdm16122.contentdm.oclc.org/digital/collection/p15370coll2/id/33/"},
+            {label:"Library and Archives Canada · first team and Canadian record", url:"https://thediscoverblog.com/2016/12/21/125-years-ago-today-the-invention-of-basketball-and-the-canadian-participants-in-the-first-ever-basketball-game/"},
+            {label:"French Basketball Federation · Melvin Rideout", url:"https://api.ffbb.com/assets/a3fda58c-fc18-467c-860d-ea1cb592aa8e"},
+            {label:"Basketball Federation of India · T. Duncan Patton", url:"https://www.indiabasketball.org/basketball-in-india-growth-innovation-and-passion.html"},
+            {label:"Brazilian Basketball Confederation · Augusto Shaw", url:"https://cbb.com.br/basquete"}
+          ]
+        }
       },
       {
         key:"migration", name:"Migration corridors", group:"Human movement", accent:"#79bad0",
+        view:{center:[-88,25],zoom:1.45},
         corridor:"The many routes into the United States",
         trail:["MEX-USA","IND-USA","CHN-USA","PHL-USA","PRI-USA"],
         headline:"One destination, several different <em>migration histories.</em>",
@@ -214,6 +320,7 @@
       },
       {
         key:"cables", name:"Submarine cables", group:"Trade & resources", accent:"#84c9b6",
+        view:{center:[-34,20],zoom:1.35},
         corridor:"The Atlantic cable web",
         trail:["USA-GBR","USA-FRA","USA-ESP","USA-BRA","PRT-BRA","ESP-ARG"],
         headline:"The ocean-floor web connecting the <em>Atlantic world.</em>",
@@ -222,6 +329,7 @@
       },
       {
         key:"refugees", name:"Refugee flows", group:"Human movement", accent:"#cfb06f",
+        view:{center:[-67,0],zoom:2.05},
         corridor:"The Venezuelan displacement corridor",
         trail:["VEN-COL","VEN-PER","VEN-BRA","VEN-ECU","VEN-CHL"],
         headline:"How one crisis redrew the human map of <em>South America.</em>",
@@ -230,6 +338,7 @@
       },
       {
         key:"food", name:"Food & grain", group:"Trade & resources", accent:"#d6be67",
+        view:{center:[78,12],zoom:1.3},
         corridor:"The routes that feed China",
         trail:["BRA-CHN","ARG-CHN","USA-CHN","UKR-CHN","AUS-CHN"],
         headline:"Five breadbaskets converging on one immense <em>market.</em>",
@@ -238,6 +347,7 @@
       },
       {
         key:"oil", name:"Oil & gas", group:"Trade & resources", accent:"#d08067",
+        view:{center:[70,18],zoom:1.35},
         corridor:"China’s energy supply web",
         trail:["SAU-CHN","RUS-CHN","IRQ-CHN","ARE-CHN","KWT-CHN","IRN-CHN","VEN-CHN","AGO-CHN","AUS-CHN"],
         headline:"Nine energy routes, one question of <em>dependence.</em>",
@@ -246,6 +356,7 @@
       },
       {
         key:"dust", name:"Saharan dust", group:"Natural systems", accent:"#d9aa72",
+        view:{center:[-29,16],zoom:1.45},
         corridor:"The trans-Atlantic dust corridor",
         routes:["Sahara → Amazon","Sahara → Caribbean"],
         headline:"One desert plume, two ocean-crossing <em>destinations.</em>",
@@ -254,6 +365,7 @@
       },
       {
         key:"flyways", name:"Bird migration flyways", group:"Natural systems", accent:"#9cc58b",
+        view:{center:[142,18],zoom:1.2},
         corridor:"The great Pacific flyways",
         routes:["East Asian-Australasian Flyway","Pacific/Central Flyway"],
         headline:"Two aerial highways followed by <em>millions of birds.</em>",
@@ -262,6 +374,7 @@
       },
       {
         key:"remittances", name:"Remittance corridors", group:"Human movement", accent:"#8fb8d8",
+        view:{center:[-82,15],zoom:1.55},
         corridor:"The money routes from the United States",
         trail:["USA-MEX","USA-GTM","USA-DOM","USA-COL","USA-SLV","USA-HND","USA-HTI","USA-ECU","USA-JAM","USA-PER","USA-BRA"],
         headline:"Eleven financial lifelines, sent home <em>family by family.</em>",
@@ -270,6 +383,7 @@
       },
       {
         key:"shipping", name:"Shipping lanes", group:"Trade & resources", accent:"#78b8bb",
+        view:{center:[112,8],zoom:1.2},
         corridor:"Asia’s ocean trade fan",
         routes:["Asia–Europe via Malacca + Suez","Trans-Pacific → US West Coast","Trans-Pacific → Panama Canal"],
         headline:"Three sea lanes, a handful of <em>narrow places.</em>",
@@ -278,6 +392,7 @@
       },
       {
         key:"aid", name:"Foreign aid flows", group:"Trade & resources", accent:"#bd9ad0",
+        view:{center:[105,20],zoom:1.5},
         corridor:"Japan’s development-finance network",
         trail:["JPN-IND","JPN-BGD","JPN-IDN","JPN-PHL","JPN-VNM"],
         headline:"Five development routes built from <em>loans and infrastructure.</em>",
@@ -292,7 +407,12 @@
     monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
     const epoch = Date.UTC(2026, 0, 5);
     const weekNumber = Math.floor((monday.getTime() - epoch) / weekMs);
-    const scheduledIndex = ((weekNumber % pathways.length) + pathways.length) % pathways.length;
+    // The editorial order is independent of the picker order. This week leaves the
+    // regular layer set for one evidence-led history of a sport in motion.
+    const rotation = [0,2,3,4,5,1,6,7,8,9,10,11];
+    const rotationSlot = ((weekNumber % rotation.length) + rotation.length) % rotation.length;
+    const scheduledIndex = rotation[rotationSlot];
+    const nextScheduledIndex = rotation[(rotationSlot + 1) % rotation.length];
     const requested = new URLSearchParams(location.search).get("preview");
     const requestedIndex = pathways.findIndex(item => item.key === requested);
     let activeIndex = requestedIndex >= 0 ? requestedIndex : scheduledIndex;
@@ -302,6 +422,52 @@
     });
     const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
     const dateRange = `${formatDay(monday, false)}–${formatDay(sunday, true)}`;
+
+    const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[character]);
+
+    function renderEvidence(item){
+      const section = document.getElementById("story-evidence");
+      const content = document.getElementById("evidence-content");
+      if(!item.evidence){
+        section.hidden = true;
+        content.replaceChildren();
+        return;
+      }
+      const evidence = item.evidence;
+      const records = evidence.records.map(record => `
+        <article class="record" style="--record-color:${escapeHTML(record.color || item.accent)}">
+          <div class="record-head">
+            <span class="record-date">${record.n ? `<span class="record-order" aria-label="Stop ${escapeHTML(record.n)}">${escapeHTML(record.n)}</span>` : ""}<span class="record-period">${escapeHTML(record.period)}</span></span>
+            <span class="record-type">${escapeHTML(record.type)}</span>
+          </div>
+          <h3>${escapeHTML(record.route)}</h3>
+          <p>${escapeHTML(record.text)}</p>
+          <a href="${escapeHTML(record.url)}" target="_blank" rel="noopener">Read ${escapeHTML(record.source)} ↗</a>
+        </article>`).join("");
+      const limits = evidence.limits.map(limit => `<li>${escapeHTML(limit)}</li>`).join("");
+      const terms = evidence.terms.map(entry => `
+        <div class="term"><b>${escapeHTML(entry.term)}:</b> ${escapeHTML(entry.meaning)}</div>`).join("");
+      const sources = evidence.sources.map(source => `
+        <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener">${escapeHTML(source.label)} ↗</a>`).join("");
+      content.innerHTML = `
+        <p class="reader-prompt">${escapeHTML(evidence.prompt)}</p>
+        <div class="records">${records}</div>
+        <details open>
+          <summary>What this map cannot tell you</summary>
+          <ul>${limits}</ul>
+        </details>
+        <details>
+          <summary>Three terms, in plain language</summary>
+          <div class="terms">${terms}</div>
+        </details>
+        <details>
+          <summary>Open the primary sources</summary>
+          <div class="source-list">${sources}</div>
+        </details>`;
+      section.hidden = false;
+    }
 
     function showPathway(index){
       activeIndex = ((index % pathways.length) + pathways.length) % pathways.length;
@@ -315,13 +481,26 @@
       document.getElementById("date-range").textContent = dateRange;
       document.getElementById("map-title").textContent = item.corridor;
       document.getElementById("map-group").textContent = `${item.name} · ${item.group}`;
-      document.getElementById("next-title").textContent = pathways[(scheduledIndex + 1) % pathways.length].corridor;
+      document.getElementById("next-title").textContent = pathways[nextScheduledIndex].corridor;
       document.getElementById("edition-stamp").innerHTML = `Edition ${String(weekNumber + 1).padStart(2,"0")}<br>${dateRange.replace("–","—")}`;
-      const storyParams = new URLSearchParams({layer:item.key});
-      if(item.trail) storyParams.set("trail",item.trail.join(","));
-      if(item.routes) storyParams.set("routes",item.routes.join("|"));
-      document.getElementById("explore-link").href = `almanac.html?${storyParams}`;
+      const storyParams = item.storyId
+        ? new URLSearchParams({story:item.storyId})
+        : new URLSearchParams({layer:item.key});
+      if(!item.storyId && item.trail) storyParams.set("trail",item.trail.join(","));
+      if(!item.storyId && item.routes) storyParams.set("routes",item.routes.join("|"));
+      if(item.view){
+        storyParams.set("center",item.view.center.join(","));
+        storyParams.set("zoom",String(item.view.zoom));
+      }
+      const pathCount = item.pathCount || (item.trail || item.routes || []).length;
+      const exploreLink = document.getElementById("explore-link");
+      exploreLink.href = `almanac.html?${storyParams}`;
+      exploreLink.childNodes[0].nodeValue = item.exploreLabel || `Open this ${pathCount}-path story `;
+      const fullLayerLink = document.getElementById("full-layer-link");
+      fullLayerLink.href = item.fullLayer || `almanac.html?layer=${encodeURIComponent(item.key)}`;
+      fullLayerLink.textContent = item.fullLayerLabel || `Show the full ${item.name.toLowerCase()} layer`;
       document.getElementById("pathway-map").src = `almanac.html?${storyParams}`;
+      renderEvidence(item);
       document.querySelectorAll("#queue button").forEach((button, buttonIndex) => {
         button.setAttribute("aria-current", buttonIndex === activeIndex ? "true" : "false");
       });

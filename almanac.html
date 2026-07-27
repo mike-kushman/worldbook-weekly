@@ -12,10 +12,18 @@
 <script>
   const _wbParams = new URLSearchParams(window.location.search);
   const _wbEmbed = _wbParams.get("embed") === "1";
-  const _wbRequestedLayer = _wbParams.get("layer") || "";
+  const _wbRequestedStory = (_wbParams.get("story") || "").toLowerCase();
+  const _wbRequestedLayer = _wbParams.get("layer")
+    || (_wbRequestedStory ? `weekly_${_wbRequestedStory.replace(/[^a-z0-9]+/g,"_")}` : "");
   const _wbCorridorFrom = (_wbParams.get("from") || "").toUpperCase();
   const _wbCorridorTo = (_wbParams.get("to") || "").toUpperCase();
   const _wbCorridorName = _wbParams.get("corridor") || "";
+  const _wbCenterParts = (_wbParams.get("center") || "").split(",").map(Number);
+  const _wbRequestedCenter = _wbCenterParts.length===2 && _wbCenterParts.every(Number.isFinite)
+    && Math.abs(_wbCenterParts[0])<=180 && Math.abs(_wbCenterParts[1])<=90
+    ? [_wbCenterParts[0],_wbCenterParts[1]] : null;
+  const _wbZoomValue = Number(_wbParams.get("zoom"));
+  const _wbRequestedZoom = Number.isFinite(_wbZoomValue) && _wbParams.has("zoom") ? _wbZoomValue : null;
   const _wbTrailPairs = (_wbParams.get("trail") || "").split(",").map(token=>{
     const parts=token.trim().toUpperCase().split("-");
     return parts.length===2&&parts[0]&&parts[1]?{from:parts[0],to:parts[1]}:null;
@@ -86,6 +94,10 @@
     border-radius:14px;padding:12px 14px;backdrop-filter:blur(10px);max-width:240px;max-height:min(calc(38vh - 36px), calc(100vh - 190px));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
   #legend h3{margin:0 0 9px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
   .lg-row{display:flex;align-items:center;gap:8px;padding:2px 0;font-size:12.5px}
+  .featured-focus{margin:0 0 9px;padding:9px;border:1px solid rgba(110,168,254,.35);border-radius:9px;background:rgba(110,168,254,.08)}
+  .featured-focus p{margin:0 0 7px;color:var(--ink);font-size:11px;line-height:1.4}
+  .featured-focus button{width:100%;border:1px solid rgba(147,161,181,.45);border-radius:7px;background:var(--chip);color:var(--ink);padding:7px 8px;font-size:11px;font-weight:650;cursor:pointer}
+  .featured-focus button:hover,.featured-focus button:focus-visible{border-color:var(--accent);outline:none}
   .sw{width:14px;height:14px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.15)}
   .lg-grad{height:12px;border-radius:6px;margin:2px 0 6px}
   .lg-scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}
@@ -574,7 +586,8 @@ try{
     style:{version:8, projection:{type:"globe"},
       sources:{}, glyphs:"https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
       layers:[{id:"bg",type:"background",paint:{"background-color":"rgba(7,11,20,0)"}}]},
-    center:[10,28], zoom:_wbEmbed?1.25:1.45,
+    center:_wbRequestedCenter||[10,28],
+    zoom:_wbRequestedZoom!==null?_wbRequestedZoom-(window.innerWidth<=700?0.2:0):(_wbEmbed?1.25:1.45),
     attributionControl:false, maxZoom:9
   });
 }catch(err){
@@ -1141,7 +1154,7 @@ map.addLayer(countryLabels3D);
   let _revealed=false;
 /* WB_SMOOTH_REVEAL_V1 */
   const _reveal=()=>{ if(_revealed) return; _revealed=true;
-    try{ if(!_wbEmbed && _wbGeo){ map.jumpTo({center:[_wbGeo.lng,_wbGeo.lat], zoom:1.6, bearing:0, pitch:0}); _wbGeoCentered=true; } }catch(e){}   // open already centered on the visitor's IP location (the ping epicenter), no fly-in
+    try{ if(!_wbEmbed && !_wbRequestedCenter && _wbGeo){ map.jumpTo({center:[_wbGeo.lng,_wbGeo.lat], zoom:1.6, bearing:0, pitch:0}); _wbGeoCentered=true; } }catch(e){}   // open already centered on the visitor's IP location (the ping epicenter), no fly-in
     document.getElementById("loading").style.display="none";
     startSpin();
     try{ _wbDropoutBootT=Date.now(); }catch(e){}   // boot window starts at reveal, not script eval
@@ -1250,7 +1263,7 @@ map.moveLayer("country-labels");   // fix: MapLibre resolves cross-layer symbol 
 if(map.isStyleLoaded()) _atlasBoot(); else map.on("load", _atlasBoot);
 var _wbGeo=null, _wbGeoMapReady=false, _wbGeoApplied=false, _wbGeoRevealReady=false, _wbGeoCentered=false;
 function _wbApplyGeo(){
-  if(_wbEmbed) return;
+  if(_wbEmbed || _wbRequestedCenter) return;
   // _wbGeoRevealReady gates the ping until the loading overlay is gone - map "load" and
   // the IP lookup both resolve while the boot screen still covers the map, and a ping
   // that radiates behind the overlay is a ping nobody sees.
@@ -1291,12 +1304,14 @@ function _wbGeoFromGeojs(){
     return {lat:lat, lng:lng, place:[d.city,d.region,d.country].filter(Boolean).join(", "), flag:""};
   });
 }
-_wbGeoFromIpwhois().catch(function(e){
-  if(window.console) console.warn("[worldbook geo] primary lookup failed, trying fallback", e);
-  return _wbGeoFromGeojs();
-}).then(function(g){
-  _wbGeo=g; _wbApplyGeo();
-}).catch(function(e){ if(window.console) console.warn("[worldbook geo] all lookups failed - no marker this visit", e); });
+if(!_wbRequestedCenter){
+  _wbGeoFromIpwhois().catch(function(e){
+    if(window.console) console.warn("[worldbook geo] primary lookup failed, trying fallback", e);
+    return _wbGeoFromGeojs();
+  }).then(function(g){
+    _wbGeo=g; _wbApplyGeo();
+  }).catch(function(e){ if(window.console) console.warn("[worldbook geo] all lookups failed - no marker this visit", e); });
+}
 map.on("load", function(){ _wbGeoMapReady=true; _wbApplyGeo(); });
 { let _w=0; const _wi=setInterval(function(){ if(_atlasBooted||_w++>40){ clearInterval(_wi); return; } if(map.isStyleLoaded()) _atlasBoot(); }, 250); }
 
@@ -1310,7 +1325,7 @@ function fmtSim(d){ const y=d.getUTCFullYear(), era=y<=0?"BCE":"CE", yy=y<=0?(1-
 function updateTimeLabel(){ const e=document.getElementById("tbDate"); if(e) e.textContent=fmtSim(solarDate); }
 function _guideIdx(){
   var prov=(typeof LAYER_PROV!=="undefined")?LAYER_PROV:{}, groups={}, order=[];
-  META.layers.forEach(function(l){ if(!groups[l.group]){groups[l.group]=[];order.push(l.group);} groups[l.group].push(l); });
+  META.layers.filter(function(l){ return !l.hidden; }).forEach(function(l){ if(!groups[l.group]){groups[l.group]=[];order.push(l.group);} groups[l.group].push(l); });
   var h="";
   order.forEach(function(g){
     h+='<div class="g-grp">'+g+'</div>';
@@ -1421,7 +1436,7 @@ function startSpin(){
       updateTimeLabel();
       // Earth's rotation IS time passing — 360° per simulated day. Suspended only while you
       // actively grab the globe (≈1.2 s), so manual rotation never fights the spin.
-      if(!_wbEmbed && !subOn && !dragging && (Date.now()-lastInteract>1200)){
+      if(!_wbEmbed && (!_wbRequestedCenter||curatedFlowFocusDismissed) && !subOn && !dragging && (Date.now()-lastInteract>1200)){
         const c=map.getCenter(); c.lng=((c.lng - (simSpeed/60)*360*dt + 540)%360)-180; map.setCenter(c);
       }
       // day/night glides with the spin — refresh ~15 Hz so the terminator never lurches,
@@ -2254,6 +2269,92 @@ aid:{"label":"Foreign aid flows","group":"Trade & resources","unit":"US$ million
     ]
   }
 };
+
+/* Weekly stories are deliberately separate from the atlas's reusable layer set.
+   A story is registered only when its URL is opened, so it can use one bespoke,
+   sourced geometry without becoming a permanent menu choice. */
+const WEEKLY_FLOW_REGISTRY = {
+  weekly_basketball_departures: {
+    layer: {
+      group: "Weekly story",
+      key: "flow_weekly_basketball_departures",
+      label: "Basketball’s first departures",
+      type: "flow",
+      flowKey: "weekly_basketball_departures",
+      hidden: true
+    },
+    flow: {
+      label: "Basketball’s first departures",
+      group: "Weekly story",
+      geo: true,
+      showCountryLabels: true,
+      disableCountryFocus: true,
+      highlightCountryColors: {
+        USA:"#6a603a",
+        CAN:"#704737",
+        FRA:"#71394f",
+        IND:"#4f416f",
+        BRA:"#2f626a"
+      },
+      unit: "selected early documentary record",
+      desc: "Four sourceable transmissions of a new game, ordered by the record date at each destination.",
+      color: "#ff9b69",
+      dotColor: "#ffe7d9",
+      legend: "Four early transmissions from the United States, shown as relationships between named institutions and people.",
+      sequence: [
+        {n:1,label:"Springfield",year:"1891",color:"#ffe28a"},
+        {n:2,label:"St. Stephen",year:"1892",color:"#ff9b69"},
+        {n:3,label:"Paris",year:"1893",color:"#f16697"},
+        {n:4,label:"Kolkata",year:"1893–94",color:"#a177e8"},
+        {n:5,label:"São Paulo",year:"1894–96",color:"#42b8c6"}
+      ],
+      countryNote: "Country shade repeats each numbered stop’s color; unshaded countries are simply outside this selected evidence trail.",
+      weightNote: "Hue and number encode documentary chronology only. Line width and moving dots encode no quantity, speed, popularity, influence, or certainty.",
+      note: "Arcs connect the institutions named in the sources. They are schematic relationships, not reconstructed travel tracks or a claim that each destination received the game from the previous one.",
+      sources: [
+        {label:"Springfield College — birthplace and original rules",url:"https://springfield.edu/about/birthplace-of-basketball"},
+        {label:"Library and Archives Canada — first team and Canadian record",url:"https://thediscoverblog.com/2016/12/21/125-years-ago-today-the-invention-of-basketball-and-the-canadian-participants-in-the-first-ever-basketball-game/"},
+        {label:"French Basketball Federation — Melvin Rideout",url:"https://api.ffbb.com/assets/a3fda58c-fc18-467c-860d-ea1cb592aa8e"},
+        {label:"Basketball Federation of India — T. Duncan Patton",url:"https://www.indiabasketball.org/basketball-in-india-growth-innovation-and-passion.html"},
+        {label:"Brazilian Basketball Confederation — Augusto Shaw",url:"https://cbb.com.br/basquete"}
+      ],
+      stops: [
+        {n:1,coord:[-72.5898,42.1015],place:"Springfield, United States",year:"1891 / Jan 1892",carrier:"Naismith’s game and the printed rules",color:"#ffe28a"},
+        {n:2,coord:[-67.2817,45.1942],place:"St. Stephen, Canada",year:"fall 1892",carrier:"Lyman Archibald organized one of Canada’s first games",color:"#ff9b69"},
+        {n:3,coord:[2.3522,48.8566],place:"Paris, France",year:"27 Dec 1893",carrier:"Melvin Rideout",color:"#f16697"},
+        {n:4,coord:[88.3639,22.5726],place:"Kolkata, India",year:"1893–94",carrier:"Attributed to T. Duncan Patton",color:"#a177e8"},
+        {n:5,coord:[-46.6333,-23.5505],place:"São Paulo, Brazil",year:"1894–96",carrier:"Augusto Shaw’s ball and Mackenzie team",color:"#42b8c6"}
+      ],
+      edges: [
+        {
+          from:"USA",to:"CAN",w:1,c:"#ff9b69",dc:"#ffd7c6",
+          nm:"Springfield → St. Stephen",amt:"fall 1892 · Lyman Archibald · one of Canada’s first games",
+          path:[[-72.5898,42.1015],[-67.2817,45.1942]]
+        },
+        {
+          from:"USA",to:"FRA",w:1,c:"#f16697",dc:"#ffc9dd",
+          nm:"Springfield → Paris",amt:"27 December 1893 · Melvin Rideout",
+          path:[[-72.5898,42.1015],[2.3522,48.8566]]
+        },
+        {
+          from:"USA",to:"IND",w:1,c:"#a177e8",dc:"#d9cfff",
+          nm:"Springfield → Kolkata",amt:"1893–94 · attributed to T. Duncan Patton",
+          path:[[-72.5898,42.1015],[88.3639,22.5726]]
+        },
+        {
+          from:"USA",to:"BRA",w:1,c:"#42b8c6",dc:"#c7f6f3",
+          nm:"New Haven → São Paulo",amt:"1894 arrival account · 1896 organized Mackenzie team · Augusto Shaw",
+          path:[[-72.9279,41.3083],[-46.6333,-23.5505]]
+        }
+      ]
+    }
+  }
+};
+const _wbWeeklyLayer = WEEKLY_FLOW_REGISTRY[_wbRequestedLayer] || null;
+if(_wbWeeklyLayer){
+  FLOWS[_wbWeeklyLayer.layer.flowKey] = _wbWeeklyLayer.flow;
+  META.layers.push(_wbWeeklyLayer.layer);
+}
 hydrateSources();
 
 /* ---- build animated GeoJSON for the active flow ---- */
@@ -2300,6 +2401,7 @@ function addFlowLayers(){
   buildCentroids();
   map.addSource("flow-lines",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
   map.addSource("flow-dots", {type:"geojson",data:{type:"FeatureCollection",features:[]}});
+  map.addSource("flow-stops",{type:"geojson",data:{type:"FeatureCollection",features:[]}});
   map.addLayer({id:"flow-lines",type:"line",source:"flow-lines",
     layout:{visibility:"none","line-cap":"round","line-join":"round"},
     paint:{
@@ -2318,6 +2420,38 @@ function addFlowLayers(){
     }});
   FLOW3D=_newFlow3DLayer();
   map.addLayer(FLOW3D);
+  map.addLayer({id:"flow-stops-ring",type:"circle",source:"flow-stops",
+    layout:{visibility:"none"},
+    paint:{
+      "circle-radius":["interpolate",["linear"],["zoom"],1,11,6,16],
+      "circle-color":"rgba(7,11,18,.9)",
+      "circle-stroke-width":1.5,
+      "circle-stroke-color":["coalesce",["get","c"],"#ffffff"],
+      "circle-opacity":0.94
+    }});
+  map.addLayer({id:"flow-stops-dot",type:"circle",source:"flow-stops",
+    layout:{visibility:"none"},
+    paint:{
+      "circle-radius":["interpolate",["linear"],["zoom"],1,8.5,6,13],
+      "circle-color":["coalesce",["get","c"],"#ffffff"],
+      "circle-stroke-width":1,
+      "circle-stroke-color":"#07110e",
+      "circle-opacity":1
+    }});
+  map.addLayer({id:"flow-stop-labels",type:"symbol",source:"flow-stops",
+    layout:{
+      visibility:"none",
+      "text-field":["to-string",["get","n"]],
+      "text-size":["interpolate",["linear"],["zoom"],1,10,6,14],
+      "text-font":["Noto Sans Bold"],
+      "text-allow-overlap":true,
+      "text-ignore-placement":true
+    },
+    paint:{
+      "text-color":"#07110e",
+      "text-halo-color":"rgba(255,255,255,.42)",
+      "text-halo-width":0.35
+    }});
 }
 
 function flowActive(){ return !!(flowKey && FLOWS[flowKey]); }
@@ -2328,10 +2462,23 @@ let flowFocusPair=null;                 // exact origin → destination corridor
 let flowFocusName="";                   // named path for geographic routes without country endpoints
 let flowTrailPairs=[];                  // related bilateral paths curated into one weekly story
 let flowTrailNames=[];                  // named geographic routes curated into one weekly story
+let curatedFlowFocusDismissed=false;    // once expanded, layer changes must not reapply the URL's opening subset
 function flowEdgeInTrail(edge){
   if(!flowTrailPairs.length&&!flowTrailNames.length) return true;
   return flowTrailPairs.some(pair=>edge.from===pair.from&&edge.to===pair.to)
     || flowTrailNames.some(name=>edge.nm===name);
+}
+function hasCuratedFlowFocus(){ return !!(flowFocusPair||flowFocusName||flowTrailPairs.length||flowTrailNames.length); }
+function showFullFlowLayer(){
+  curatedFlowFocusDismissed=true;
+  flowFocusPair=null; flowFocusName=""; flowTrailPairs=[]; flowTrailNames=[];
+  if(flowActive()){ setFlowBase(flowKey); buildFlowGeo(flowKey); drawFlowLegend(flowKey); }
+  try{
+    const u=new URL(location.href);
+    ["story","from","to","corridor","trail","routes","center","zoom"].forEach(k=>u.searchParams.delete(k));
+    history.replaceState(null,"",u);
+  }catch(_){}
+  try{ map.easeTo({center:[10,28],zoom:window.innerWidth<=700?1.25:1.45,bearing:0,pitch:0,duration:650}); }catch(_){}
 }
 function setFlowFocus(iso){ flowFocusIso = (flowFocusIso===iso)?null:iso; if(flowActive()){ buildFlowGeo(flowKey); drawFlowLegend(flowKey); } }
 function clearFlowFocus(){ flowFocusIso=null; if(flowActive()){ buildFlowGeo(flowKey); drawFlowLegend(flowKey); } }
@@ -2341,14 +2488,15 @@ const ROLE_COL={source:"#2f9e6e", transit:"#d9a441", consumer:"#c0556b", none:"#
 function setFlow(key){
   flowKey = key; flowIso=null; flowFocusIso=null;
   const _matchesRequestedFlow=META.layers.some(l=>l.type==="flow"&&l.flowKey===key&&(l.key===_wbRequestedLayer||l.flowKey===_wbRequestedLayer));
-  flowFocusPair=(_matchesRequestedFlow&&_wbCorridorFrom&&_wbCorridorTo)?{from:_wbCorridorFrom,to:_wbCorridorTo}:null;
-  flowFocusName=_matchesRequestedFlow?_wbCorridorName:"";
-  flowTrailPairs=_matchesRequestedFlow?_wbTrailPairs:[];
-  flowTrailNames=_matchesRequestedFlow?_wbTrailNames:[];
+  const _applyRequestedFocus=_matchesRequestedFlow&&!curatedFlowFocusDismissed;
+  flowFocusPair=(_applyRequestedFocus&&_wbCorridorFrom&&_wbCorridorTo)?{from:_wbCorridorFrom,to:_wbCorridorTo}:null;
+  flowFocusName=_applyRequestedFocus?_wbCorridorName:"";
+  flowTrailPairs=_applyRequestedFocus?_wbTrailPairs:[];
+  flowTrailNames=_applyRequestedFocus?_wbTrailNames:[];
   if(map.getLayer("borders")) map.setPaintProperty("borders","line-opacity",1);   // borders show on every layer except satellite (flow is never satellite - it's hidden above setFlow is called)
   const _flEl=document.getElementById("legend"); if(_flEl) _flEl.style.display="";   // flow layers never go through drawLegend(), which is the only other place that clears a reference layer's display:none
   const F=FLOWS[key];
-  ["flow-lines","flow-dots"].forEach(id=>map.setLayoutProperty(id,"visibility","visible"));
+  ["flow-lines","flow-dots","flow-stops-ring","flow-stops-dot","flow-stop-labels"].forEach(id=>map.setLayoutProperty(id,"visibility","visible"));
   map.setPaintProperty("flow-lines","line-color",["coalesce",["get","c"],F.color]);
   map.setPaintProperty("flow-dots","circle-color",["coalesce",["get","c"],F.dotColor||"#cfe2ff"]);
   applyFlowStyle();                      // mobile opacity/width ramp + isolation state
@@ -2360,7 +2508,8 @@ function setFlow(key){
 function clearFlow(){
   flowKey=null; flowIso=null; flowFocusPair=null; flowFocusName=""; flowTrailPairs=[]; flowTrailNames=[];
   if(flowAnim){ cancelAnimationFrame(flowAnim); flowAnim=null; }
-  ["flow-lines","flow-dots"].forEach(id=>{ if(map.getLayer(id)) map.setLayoutProperty(id,"visibility","none"); });
+  ["flow-lines","flow-dots","flow-stops-ring","flow-stops-dot","flow-stop-labels"].forEach(id=>{ if(map.getLayer(id)) map.setLayoutProperty(id,"visibility","none"); });
+  { const ss=map.getSource("flow-stops"); if(ss) ss.setData({type:"FeatureCollection",features:[]}); }
   if(FLOW3D){ FLOW3D.setLines([]); FLOW3D.setDots([]); }
 }
 
@@ -2724,9 +2873,24 @@ function updateNoDataHatch(key){
 function setFlowBase(key){
   if(subOn) return;
   updateNoDataHatch(key);
-  if(map.getLayer("country-labels")) map.setLayoutProperty("country-labels","visibility", key==="countries"?"visible":"none");
-  if(FLOWS[key]&&FLOWS[key].geo){ map.setPaintProperty("fills","fill-color","#162130"); map.setPaintProperty("fills","fill-opacity",0.72); return; }
-  if(FLOWS[key]&&FLOWS[key].baseColorProp){ map.setPaintProperty("fills","fill-color",["coalesce",["get",FLOWS[key].baseColorProp],DEBT_NODATA]); map.setPaintProperty("fills","fill-opacity",0.92); return; }
+  const F=FLOWS[key];
+  if(map.getLayer("country-labels")) map.setLayoutProperty("country-labels","visibility", (key==="countries"||F&&F.showCountryLabels)?"visible":"none");
+  if(F&&F.geo){
+    if(F.highlightCountryColors&&Object.keys(F.highlightCountryColors).length){
+      const pairs=[]; Object.entries(F.highlightCountryColors).forEach(([iso,color])=>pairs.push(iso,color));
+      map.setPaintProperty("fills","fill-color",["match",["get","iso3"],...pairs,"#162130"]);
+      map.setPaintProperty("fills","fill-opacity",0.9);
+    }else if(F.highlightCountries&&F.highlightCountries.length){
+      const pairs=[]; F.highlightCountries.forEach(iso=>pairs.push(iso,F.highlightColor||"#29434b"));
+      map.setPaintProperty("fills","fill-color",["match",["get","iso3"],...pairs,"#162130"]);
+      map.setPaintProperty("fills","fill-opacity",0.84);
+    }else{
+      map.setPaintProperty("fills","fill-color","#162130");
+      map.setPaintProperty("fills","fill-opacity",0.72);
+    }
+    return;
+  }
+  if(F&&F.baseColorProp){ map.setPaintProperty("fills","fill-color",["coalesce",["get",F.baseColorProp],DEBT_NODATA]); map.setPaintProperty("fills","fill-opacity",0.92); return; }
   const role=rolesFor(key, flowIso), pairs=[];
   Object.entries(role).forEach(([iso,r])=>{ pairs.push(iso, ROLE_COL[r]); });
   map.setPaintProperty("fills","fill-color", pairs.length?["match",["get","iso3"], ...pairs, ROLE_COL.none]:ROLE_COL.none);
@@ -2924,6 +3088,18 @@ function buildFlowGeo(key){
   });
   FLOWGEO={key,focus:flowFocusIso,items};
   const ls=map.getSource("flow-lines"); if(ls) ls.setData({type:"FeatureCollection",features:lines});
+  const stopFeatures=(F.stops||[]).map(stop=>({
+    type:"Feature",
+    properties:{
+      n:String(stop.n||""),
+      c:stop.color||F.color,
+      place:stop.place||"",
+      year:stop.year||"",
+      carrier:stop.carrier||""
+    },
+    geometry:{type:"Point",coordinates:stop.coord}
+  })).filter(feature=>Array.isArray(feature.geometry.coordinates)&&feature.geometry.coordinates.length===2);
+  const ss=map.getSource("flow-stops"); if(ss) ss.setData({type:"FeatureCollection",features:stopFeatures});
   if(FLOW3D) FLOW3D.setLines(line3D);
 }
 function flowDotsFC(phase){
@@ -2957,6 +3133,10 @@ function drawFlowLegend(key){
   const F=FLOWS[key], el=document.getElementById("legend");
   if(F.timeline) return drawMigLegend(key,F,el);
   let b=`<div class="lg-row" style="font-size:12px">${F.legend}</div>`;
+  if(hasCuratedFlowFocus()){
+    const routeCount=flowTrailPairs.length+flowTrailNames.length+(flowFocusPair?1:0)+(flowFocusName?1:0);
+    b=`<div class="featured-focus"><p>Weekly story focus · ${routeCount} selected ${routeCount===1?"path":"paths"}</p><button type="button" id="showFullFlow">Show every route in ${escapeHTML(F.label)}</button></div>`+b;
+  }
   if(F.cats){
     // multi-category key (e.g. drug substances) — tap a swatch to isolate that category
     F.cats.forEach(c=>{
@@ -2965,8 +3145,21 @@ function drawFlowLegend(key){
     });
     b+=`<div class="lg-row" style="color:var(--muted);font-size:10.5px;margin-top:5px">${flowIso?"Tap the highlighted entry to show all.":"Tap a category to isolate its routes."}</div>`;
   } else {
-    b+=`<div class="lg-row" style="margin-top:6px"><span style="display:inline-block;width:26px;height:0;border-top:3px solid ${F.color};border-radius:3px;margin-right:8px"></span>flow path</div>`;
+    if(F.sequence&&F.sequence.length){
+      const gradient=F.sequence.map((entry,index)=>`${entry.color} ${Math.round(index/Math.max(1,F.sequence.length-1)*100)}%`).join(",");
+      b+=`<div class="lg-row" style="margin-top:8px;color:var(--muted);font-size:10.5px">Number + hue — date of the selected record:</div>`;
+      b+=`<div class="lg-grad" style="background:linear-gradient(90deg,${gradient})"></div>`;
+      b+=`<div class="lg-scale"><span>${escapeHTML(F.sequence[0].year)}</span><span>${escapeHTML(F.sequence[F.sequence.length-1].year)}</span></div>`;
+      b+=`<div style="display:flex;flex-wrap:wrap;gap:5px 7px;margin-top:7px">`;
+      F.sequence.forEach(entry=>{
+        b+=`<span title="${escapeHTML(entry.label)} · ${escapeHTML(entry.year)}" style="display:inline-flex;align-items:center;gap:4px;color:var(--muted);font-size:9.5px"><i style="display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;background:${entry.color};color:#07110e;font-style:normal;font-weight:800">${escapeHTML(entry.n)}</i>${escapeHTML(entry.label)}</span>`;
+      });
+      b+=`</div>`;
+    }else{
+      b+=`<div class="lg-row" style="margin-top:6px"><span style="display:inline-block;width:26px;height:0;border-top:3px solid ${F.color};border-radius:3px;margin-right:8px"></span>flow path</div>`;
+    }
     b+=`<div class="lg-row"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${F.dotColor||'#cfe2ff'};margin:0 12px 0 9px"></span>direction of movement</div>`;
+    if(F.countryNote) b+=`<div class="lg-row" style="color:var(--muted);font-size:10.5px;margin-top:7px;line-height:1.4">${F.countryNote}</div>`;
     if(F.baseColorProp){ b+=`<div class="lg-row" style="margin-top:8px;color:var(--muted);font-size:10.5px">Country shade — ${F.dir==="in"?"total owed":"total lent"}:</div>`+
       `<div class="lg-grad" style="background:linear-gradient(90deg,${F.dir==="in"?"#ffe3b3":"#1a2433"},${F.dir==="in"?"#a01414":F.color})"></div>`+
       `<div class="lg-scale"><span>none</span><span>most</span></div>`+
@@ -2978,12 +3171,13 @@ function drawFlowLegend(key){
       b+=`<div class="lg-row"><span class="sw" style="background:${col}"></span>${lab}</div>`;
     });
   }
-  b+=`<div class="lg-row" style="color:var(--muted);font-size:11px;margin-top:6px">Thicker = larger ${key==="cables"?"route":"flow"}. ${F.unit}.</div>`;
+  b+=`<div class="lg-row" style="color:var(--muted);font-size:11px;margin-top:6px">${F.weightNote||`Thicker = larger ${key==="cables"?"route":"flow"}. ${F.unit}.`}</div>`;
   if(flowFocusIso){ b+=`<div class="lg-row" style="margin-top:7px;color:var(--accent);font-size:11px">Isolated: <b>${flowFocusIso}</b>'s connections — <span id="lgClearFocus" style="text-decoration:underline;cursor:pointer">show all</span></div>`; }
-  else { b+=`<div class="lg-row" style="margin-top:7px;color:var(--muted);font-size:10.5px">Click a country to isolate just its connections.</div>`; }
+  else if(!F.disableCountryFocus){ b+=`<div class="lg-row" style="margin-top:7px;color:var(--muted);font-size:10.5px">Click a country to isolate just its connections.</div>`; }
   if(F.note) b+=`<div class="lg-row" style="color:var(--muted);font-size:10.5px;font-style:italic;margin-top:6px;line-height:1.4">${F.note}</div>`;
   b+=renderSourceBlock(F.sources);
   el.innerHTML=`<h3>${F.label}<span class="caret">▾</span></h3>${_legendSrc(key)}<div class="lg-body">${b}</div>`;
+  { const _showAll=el.querySelector("#showFullFlow"); if(_showAll) _showAll.onclick=ev=>{ ev.stopPropagation(); showFullFlowLayer(); }; }
   { const _cf=el.querySelector("#lgClearFocus"); if(_cf) _cf.onclick=ev=>{ ev.stopPropagation(); clearFlowFocus(); }; }
   el.classList.toggle("collapsed",legendCollapsed);
   el.querySelector("h3").onclick=()=>{ legendCollapsed=!legendCollapsed; el.classList.toggle("collapsed",legendCollapsed); };
@@ -3077,7 +3271,7 @@ function drawPartyLegend(){
 function buildLayerUI(){
   const host=document.getElementById("layers");
   const groups={};
-  META.layers.forEach(l=>{ (groups[l.group]=groups[l.group]||[]).push(l); });
+  META.layers.filter(l=>!l.hidden).forEach(l=>{ (groups[l.group]=groups[l.group]||[]).push(l); });
   let html=`<div class="panel-head" id="layersHead">Layers<span class="caret">▾</span></div><div class="layer-list">`;
   Object.keys(groups).forEach(g=>{
     html+=`<div class="grp">${g}</div>`;
@@ -3087,7 +3281,20 @@ function buildLayerUI(){
   });
   html+=`</div>`;
   host.innerHTML=html;
-  host.querySelectorAll(".layer-btn").forEach(b=>b.onclick=()=>{ setLayer(b.dataset.key);
+  host.querySelectorAll(".layer-btn").forEach(b=>b.onclick=()=>{
+    // The URL subset is an opening suggestion, not a locked navigation state.
+    // Any deliberate layer choice releases it; clicking the active layer expands it.
+    if(hasCuratedFlowFocus()) showFullFlowLayer();
+    const chosen=b.dataset.key;
+    setLayer(chosen);
+    if(_wbRequestedStory){
+      try{
+        const u=new URL(location.href);
+        ["story","from","to","corridor","trail","routes","center","zoom"].forEach(k=>u.searchParams.delete(k));
+        u.searchParams.set("layer",chosen);
+        history.replaceState(null,"",u);
+      }catch(_){}
+    }
     if(window.matchMedia("(max-width:700px)").matches) host.classList.add("collapsed"); });   // tidy away after picking on phones
   document.getElementById("layersHead").onclick=()=>host.classList.toggle("collapsed");
   if(window.innerWidth<=700) host.classList.add("collapsed");   // start tidy on phones
@@ -3210,7 +3417,7 @@ function provCard(key){
 }
 function buildSourcesIndex(){
   let out="", order=[], seen={};
-  META.layers.forEach(l=>{ if(!seen[l.group]){ seen[l.group]=[]; order.push(l.group); } seen[l.group].push(l); });
+  META.layers.filter(l=>!l.hidden).forEach(l=>{ if(!seen[l.group]){ seen[l.group]=[]; order.push(l.group); } seen[l.group].push(l); });
   out+=`<div style="font-size:11.5px;color:var(--muted);margin:-2px 0 14px;line-height:1.5">Every layer below lists what it measures, its unit, what the color means, the issuing source, the method, limitations, and a confidence rating. Data is bundled at load \u2014 nothing is fetched on hover.</div>`;
   order.forEach(g=>{ const cards=seen[g].map(l=>provCard(l.flowKey||l.key)).filter(Boolean).join(""); if(cards) out+=`<div class="sec"><h4>${escapeHTML(g)}</h4>${cards}</div>`; });
   const b=LAYER_PROV._borders;
@@ -3257,6 +3464,15 @@ function wireInteractions(){
     pop.setLngLat(e.lngLat).setHTML(hoverHTML(p,false)).addTo(map);
   });
   map.on("mouseleave","fills",()=>{ if(subOn)return; map.getCanvas().style.cursor=""; map.setFilter("hover",["==","iso3",""]); pop.remove(); });
+  map.on("mousemove","flow-stops-dot",e=>{ if(subOn||!flowActive()){ _onLine=false; return; } _onLine=true;
+    const p=e.features[0].properties;
+    map.getCanvas().style.cursor="pointer"; map.setFilter("hover",["==","iso3",""]);
+    pop.setLngLat(e.lngLat).setHTML(`<div class="pop-name"><span style="display:inline-grid;place-items:center;width:19px;height:19px;margin-right:6px;border-radius:50%;background:${p.c};color:#07110e;font-size:10px;font-weight:800">${escapeHTML(p.n)}</span>${escapeHTML(p.place)}</div><div class="pop-sub">${escapeHTML(p.year)}${p.carrier?` · ${escapeHTML(p.carrier)}`:""}</div>`).addTo(map);
+  });
+  map.on("mouseleave","flow-stops-dot",()=>{ _onLine=false; if(!subOn) map.getCanvas().style.cursor=""; pop.remove(); });
+  map.on("click","flow-stops-dot",e=>{ if(subOn||!flowActive())return; const p=e.features[0].properties;
+    pop.setLngLat(e.lngLat).setHTML(`<div class="pop-name"><span style="display:inline-grid;place-items:center;width:19px;height:19px;margin-right:6px;border-radius:50%;background:${p.c};color:#07110e;font-size:10px;font-weight:800">${escapeHTML(p.n)}</span>${escapeHTML(p.place)}</div><div class="pop-sub">${escapeHTML(p.year)}${p.carrier?` · ${escapeHTML(p.carrier)}`:""}</div>`).addTo(map);
+  });
   map.on("mousemove","flow-lines",e=>{ if(subOn||!flowActive()){ _onLine=false; return; } _onLine=true;
     map.getCanvas().style.cursor="pointer"; const p=e.features[0].properties, F=FLOWS[flowKey]||{};
     const title=p.nm || ((p.from&&p.to)?(isoName(p.from)+" \u2192 "+isoName(p.to)):(F.label||"Route"));
@@ -3267,9 +3483,12 @@ function wireInteractions(){
   map.on("mouseleave","flow-lines",()=>{ _onLine=false; if(!subOn) map.getCanvas().style.cursor=""; });
   map.on("click","flow-lines",e=>{ if(subOn||!flowActive())return; pop.setLngLat(e.lngLat).setHTML(flowTip(flowKey,e.features[0].properties)).addTo(map); });   // P1-5: mobile — tap an arc to read the route
   map.on("click","fills",e=>{ if(subOn)return;
-    if(flowActive()){ setFlowFocus(e.features[0].properties.iso3); return; }   // isolate this country's web
+    if(flowActive()){
+      if(FLOWS[flowKey]&&FLOWS[flowKey].disableCountryFocus) return;
+      setFlowFocus(e.features[0].properties.iso3); return;
+    }   // isolate this country's web
     openCountry(e.features[0].properties); });
-  map.on("click",e=>{ if(flowActive() && !map.queryRenderedFeatures(e.point,{layers:["fills","flow-lines"]}).length) clearFlowFocus(); });   // P1-5: treat an arc tap as a hit so it doesn't silently un-isolate the flow web
+  map.on("click",e=>{ if(flowActive() && !map.queryRenderedFeatures(e.point,{layers:["fills","flow-lines","flow-stops-dot","flow-stop-labels"]}).length) clearFlowFocus(); });   // treat arc and numbered-stop taps as hits so they don't silently un-isolate the flow web
 }
 
 function hoverHTML(p,isSub){
@@ -3671,8 +3890,8 @@ function initSky(){
     const sunMesh=new THREE.Mesh(new THREE.SphereGeometry(3.4,28,28),new THREE.MeshBasicMaterial({color:0xfff0b0}));
     scene.add(sunMesh); bodies.push({name:"Sun",mesh:sunMesh,sun:true});   // Sun lives in the view frame, aligned to the real sub-solar point
     // (other planets intentionally omitted — they can't read as heliocentric from an Earth-anchored view)
-    // Luna renders in a FRONT layer (over the globe) so it's visible when it passes in front of Earth;
-    // an invisible occluder sized to the globe makes it disappear only when it's genuinely behind Earth.
+    // Luna and the globe's solar shade render in a FRONT layer over MapLibre. The globe
+    // mesh writes both the natural-light alpha mask and depth for lunar occlusion.
     const fr=new THREE.WebGLRenderer({canvas:document.getElementById("moonCv"),antialias:true,alpha:true});
     fr.setPixelRatio(Math.min(window.devicePixelRatio||1,2)); fr.setClearColor(0x000000,0);
     const frontCam=new THREE.OrthographicCamera(-1,1,1,-1,1,200000);   // pixel-unit ortho → exact occlusion, no vanishing
@@ -3681,7 +3900,38 @@ function initSky(){
     fscene.add(new THREE.AmbientLight(0x223046,0.55));
     const moonLight=new THREE.PointLight(0xfff2d0,2.2,0,0); fscene.add(moonLight);
     const fgroup=new THREE.Group(); fscene.add(fgroup);
-    const earthOccluder=new THREE.Mesh(new THREE.SphereGeometry(1,48,48),new THREE.MeshBasicMaterial({colorWrite:false})); fscene.add(earthOccluder);  // invisible, depth-only
+    const earthOccluder=new THREE.Mesh(
+      new THREE.SphereGeometry(1,64,64),
+      new THREE.ShaderMaterial({
+        uniforms:{
+          uSunDir:{value:new THREE.Vector3(0,0,1)},
+          uAmbient:{value:0.52}
+        },
+        transparent:false,
+        depthTest:true,
+        depthWrite:true,
+        side:THREE.FrontSide,
+        blending:THREE.NoBlending,
+        vertexShader:`
+          varying vec3 vViewNormal;
+          void main(){
+            vViewNormal=normalize(normalMatrix*normal);
+            gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+          }`,
+        fragmentShader:`
+          uniform vec3 uSunDir;
+          uniform float uAmbient;
+          varying vec3 vViewNormal;
+          void main(){
+            float mu=dot(normalize(vViewNormal),normalize(uSunDir));
+            float twilight=smoothstep(-0.105,0.035,mu);
+            float incidence=mix(0.86,1.0,pow(max(mu,0.0),0.35));
+            float illumination=mix(uAmbient,1.0,twilight*incidence);
+            gl_FragColor=vec4(0.0,0.0,0.0,1.0-illumination);
+          }`
+      })
+    );
+    fscene.add(earthOccluder);
     const lunaPivot=new THREE.Group(); lunaPivot.rotation.set(0.38,0,0.08); fgroup.add(lunaPivot);
     const luna=new THREE.Mesh(new THREE.SphereGeometry(0.004527,24,24),new THREE.MeshStandardMaterial({color:0xd8d8d8,roughness:1}));  // 0.273×Earth radius ÷ 60.3 orbit = to-scale Moon
     lunaPivot.add(luna);
@@ -3735,15 +3985,18 @@ function renderSky(){
   const _t=performance.now(); if(_t-(SKY._last||0)<33) return; SKY._last=_t;
   sizeSky();
   const C=map.getCenter(), brg=map.getBearing()*DEG;
-  const cv=SKY.renderer.domElement, h=cv.clientHeight||window.innerHeight;
+  const cv=SKY.renderer.domElement, w=cv.clientWidth||window.innerWidth, h=cv.clientHeight||window.innerHeight;
   SKY.camera.position.set(0,0,3); SKY.camera.up.set(0,1,0); SKY.camera.lookAt(0,0,0);
   updateBodies();                                            // planet directions from the sim clock
-  { const ss=subsolarPoint(solarDate), d=sunViewDir(ss.lng,ss.lat,C.lng,C.lat,brg).multiplyScalar(60);
-    SKY.sunMesh.position.copy(d); SKY.sunLight.position.copy(d); }   // Sun aligned to the lit hemisphere; day/night shading removed per Mike's request (zoom-dependent artifacts on the earthOccluder sphere) - see worldbook_remove_daynight_shading.py
+  const ss=subsolarPoint(solarDate);
+  const sunDir=sunViewDir(ss.lng,ss.lat,C.lng,C.lat,brg);
+  SKY.sunMesh.position.copy(sunDir).multiplyScalar(60);
+  SKY.sunLight.position.copy(SKY.sunMesh.position);
+  SKY.earthOccluder.material.uniforms.uSunDir.value.copy(sunDir);
   // measure the globe's TRUE on-screen radius = its limb (max projected distance of surface points).
   // (A small-angle derivative badly under-reads it on the perspective globe — that was the real bug.)
-  let gpx=null;
-  try{ const c0=map.project([C.lng,C.lat]); let mx=0;
+  let gpx=null, gcx=w/2, gcy=h/2;
+  try{ const c0=map.project([C.lng,C.lat]); gcx=c0.x; gcy=c0.y; let mx=0;
     for(let b=0;b<360;b+=60){ const br=b*DEG;
       for(let th=20; th<=90; th+=10){
         const p=map.project(destPoint(C.lat,C.lng,br,th*DEG));
@@ -3758,19 +4011,19 @@ function renderSky(){
   // front layer: Moon in pixel-unit ORTHOGRAPHIC space (never vanishes near the camera)
   // Orbit radius = 60.3 × Earth's on-screen radius — the TRUE Earth–Moon distance (384,400 km / 6,371 km).
   // (At close zoom the Moon is correctly off-screen; zoom out to bring it into frame.)
-  if(gpx){ SKY.lunaPivot.scale.setScalar(60.3*gpx); SKY.earthOccluder.scale.setScalar(gpx); }
+  SKY.earthOccluder.visible=!!gpx;
+  if(gpx){
+    SKY.lunaPivot.scale.setScalar(60.3*gpx);
+    SKY.earthOccluder.scale.setScalar(gpx);
+    SKY.earthOccluder.position.set(gcx-w/2,h/2-gcy,0);
+  }
   SKY.fgroup.rotation.set(rx,ry,0,"YXZ");
   SKY.moonLight.position.copy(SKY.sunMesh.position).normalize().multiplyScalar(8000);
-  // True GPU depth occlusion: earthOccluder is invisible (colorWrite:false) but still writes
-  // depth, sized exactly to the globe's measured on-screen radius (gpx) and fixed at the view
-  // origin. The Moon mesh depth-tests against it like any normal opaque object, so it slides
-  // behind Earth's actual silhouette pixel-by-pixel instead of popping on a hard cutoff circle.
+  // The solar shader writes a fractional-black alpha mask aligned to the globe's true
+  // projected circle. It also writes depth, so the Moon can still pass behind Earth.
+  // A 52% ambient floor keeps labels and the weekly trail readable on the night side.
   SKY.luna.visible = false;   // moon hidden for now (Mike, 2026-07-03) — set back to true to restore
-  SKY.fr.resetState();   // fix: resyncs Three.js's cached GL state (colorMask among it) with real hardware
-  // state before this draw - without it, earthOccluder's colorWrite:false (meant to make it invisible,
-  // depth-only) can silently fail to apply, painting a large opaque-ish circle over the globe that blocks
-  // whatever MapLibre layer is underneath (confirmed live: this is why the day/night terminator rendered
-  // zero visible shading on production despite correct data). ~0.6ms/frame, negligible.
+  SKY.fr.resetState();   // resync Three.js's cached GL state before the independent front-canvas draw
   SKY.fr.render(SKY.fscene,SKY.frontCam);
 }
 function skyClick(e){
