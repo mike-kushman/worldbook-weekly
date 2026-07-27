@@ -1,10 +1,10 @@
-# Worldbook
+# Worldbook Weekly
 
-**A layered atlas of the world on a dark-space globe** — dozens of country-level data maps plus animated cross-border flow layers, rendered on a MapLibre GL globe with a Three.js star/space backdrop. Every figure traces to a named source.
+**A curated weekly front door for Worldbook** — the home page now opens on one sourced pathway layer and changes every Monday. The original dark-space globe remains available as the full almanac.
 
 **Live site:** https://worldbook.earth
 
-The entire application is a single self-contained `index.html` (~1.6 MB). All layer data, the 242 country polygons, and the full UI are baked into that one file — **there is no build step required to run it.** Open it in a browser and it works.
+This repository is a staging prototype for the landing-page redesign. `index.html` is the weekly editorial landing page; `almanac.html` is the existing self-contained Worldbook application with a small query-string interface for opening a featured flow layer (`?layer=wood`) and isolating a curated multi-path trail (`?layer=food&trail=BRA-CHN,ARG-CHN,USA-CHN`). There is no build step.
 
 ---
 
@@ -17,7 +17,7 @@ Worldbook is a spinnable, zoomable globe (MapLibre GL JS v5.6.1) on a dark-space
 
 Click a country for a detail panel with cited figures; several countries have **subnational drill-downs** (e.g. religion broken down by state/province). A **Sources & Methodology** panel documents each layer's provenance, methodology, confidence and limitations.
 
-### Two data models (both inlined in `index.html`)
+### Two data models (both inlined in `almanac.html`)
 
 - **Choropleth layers** are configured in the **`META.layers`** array (`key, label, group, type, unit, stops/palette`) and coloured from **`MAPDATA`** — a GeoJSON FeatureCollection of 242 country polygons where each feature carries a precomputed **`color_<key>`** property read by `colorExpr`. (The baked colour prop must be named `color_` + the layer key exactly.)
 - **Flow layers** live in the **`FLOWS`** object: `label, group, unit, desc, color, dotColor, legend, note, sources[], edges[]`, where each edge is `{from:"ISO3", to:"ISO3", w:<number>}` (plus optional `c:"#hex"` for the multi-substance `drugs` layer). `debtout` / `debtin` reuse the `debt` layer's edge store via `edgesRef`.
@@ -70,7 +70,7 @@ Grouped by their actual `META.layers` group. Data layers show their unit; flow l
 - ▸ **Timber & wood** (m³ logs/sawnwood, tonnes pulp) — UN Comtrade (HS4403/4407/4703); USDA FAS
 - ▸ **Flight corridors** (busiest international air routes) — OAG 2024/2025
 - ▸ **Shipping lanes** (lanes & chokepoints) — UNCTAD RMT 2024; EIA World Oil Transit Chokepoints; Panama Canal Authority
-- ▸ **Foreign aid flows** — *layer scaffolded in the picker; corridors not yet populated*
+- ▸ **Foreign aid flows** (USD millions/year; donor definitions vary) — USAFacts / USAID; JICA; UK FCDO; French Senate / DG Trésor; Devex
 
 ### Illicit flows
 - ▸ **Drug routes** (by substance) — UNODC World Drug Report 2025; EUDA European Drug Report 2025; UNODC Afghanistan Opium Survey 2023
@@ -107,7 +107,7 @@ Read magnitude **per layer** — it is not one common scale:
 - **Documented case records (a floor, not the true total)** — `trafficking` uses CTDC victim case records, a detection-based undercount.
 - **Published seizure share only** — `counterfeit` shows % share or US$ seized where published; muted grey means no published split exists (not zero).
 - **Uniform width (encodes nothing)** — `cables` draws all 18 corridors at equal weight; it shows *where* intercontinental fibre runs, not capacity or traffic.
-- **`Foreign aid flows`** appears in the layer picker but its corridors are not yet populated.
+- **Donor-specific definitions** — `aid` combines grants, loans, commitments, and disbursements reported under different national systems; compare individual paths with care.
 
 Don't read the relative, case-record, or uniform layers as measured magnitudes.
 
@@ -116,24 +116,23 @@ Don't read the relative, case-record, or uniform layers as measured magnitudes.
 ## Running it
 
 ```bash
-git clone https://github.com/never-nude/worldbook2.git
-cd worldbook2
-open index.html        # macOS  (or xdg-open on Linux, or drag into any modern browser)
+python3 -m http.server 8000
+open http://localhost:8000
 ```
 
-No build, no server, no `npm install`. Internet is needed only at runtime for the CDN libraries (MapLibre GL JS v5.6.1, Three.js), map glyphs, and raster basemap tiles (Esri/ArcGIS). All layer data and the 242 country polygons are baked into `index.html`.
+No `npm install` or build is required. A small local server is recommended because the landing page embeds `almanac.html`. Internet is needed at runtime for the CDN libraries (MapLibre GL JS v5.6.1, Three.js), map glyphs, and raster basemap tiles (Esri/ArcGIS). All layer data and the 242 country polygons are baked into `almanac.html`.
 
 ---
 
 ## Data pipeline (current state — being migrated)
 
-Layer data is generated and revised by a large set of one-shot **Python scripts in the repo root**. Each mutates `index.html` **in place** by string / regex surgery — locating a block and rewriting it. Broad roles:
+Layer data is generated and revised by a large set of one-shot **Python scripts in the repo root**. In this staging branch, pass `almanac.html almanac.html` explicitly to scripts that accept input and output paths. Each script mutates the almanac in place by string / regex surgery. Broad roles:
 
 - **Layer builders** — `build_layers.py`, `commodities_flows.py`, `illicit_flows.py`, `health_layers.py`, `hdi_layer.py`, the `debt_*.py` set, `enrich_politics.py`, `flows_expand.py`.
 - **Backfills / research integration** — `backfill_round2.py`, `backfill_refugees_wood.py`, `backfill_illicit_round3.py`, `condense_sources.py`.
 - **Fixes / hardening / UX** — `fix_remit_key_mismatch.py`, `fix_country_labels_hierarchy.py`, `fix_loading_reliability_and_country_labels.py`, `harden_loop.py`, `flow_tooltips.py`, `guide_overlay.py`, and many more.
 
-> ⚠️ **Known fragility:** the editable source of truth and the shipped artifact are the *same* file. A bad regex in any generator can corrupt the only copy of the data, with no clean rollback short of git. This build pattern is slated for a refactor that separates the editable data from the shipped `index.html` and replaces in-place HTML surgery with structured writes plus a provenance-validation step. Project docs live in `docs/`.
+> ⚠️ **Known fragility:** the editable source of truth and the shipped almanac artifact are the *same* file. A bad regex in any generator can corrupt the only copy of the data, with no clean rollback short of git. This build pattern is slated for a refactor that separates editable data from the shipped `almanac.html` and replaces in-place HTML surgery with structured writes plus a provenance-validation step. Project docs live in `docs/`.
 
 *(Note: an earlier README described this as "Atlas … inside a Live Solar System" with a `src/build.js` pipeline and a `github.io/atlas/` demo. The name is now Worldbook, the live domain is worldbook.earth, and there is no `src/` build pipeline — the generators above are the real, if transitional, pipeline.)*
 
