@@ -240,72 +240,79 @@
         source:"FAO · UN Comtrade"
       },
       {
-        key:"basketball-departures", storyId:"basketball-departures",
-        name:"Basketball", group:"Weekly-only evidence trail", accent:"#ff9b69",
-        view:{center:[-72.5898,42.1015],zoom:1.45},
-        corridor:"The first documented departures",
-        pathCount:4,
-        headline:"A rule sheet, a teacher, a ball: basketball <em>leaves home.</em>",
-        dek:"Follow four early, documented transmissions from the United States to Canada, France, India, and Brazil. Number and color show when each local record appears; the arcs show a named carrier or institutional route—not popularity, influence, or an inevitable march.",
-        source:"Springfield College · national archives and federations",
-        exploreLabel:"Follow the early evidence ",
+        key:"avastin-corridor", storyId:"avastin-corridor",
+        name:"Counterfeit medicine", group:"Weekly-only case file", accent:"#37b6c7",
+        view:{center:[-23,36],zoom:1.25},
+        corridor:"The counterfeit Avastin chain",
+        pathCount:5,
+        headline:"Five links. Forty-one packs. <em>No active ingredient.</em>",
+        dek:"WHO reconstructs a seller-to-buyer chain involving Syrian, Egyptian, Swiss, Danish, and British intermediaries. A federal offer of proof records the final physical leg: a UK wholesaler shipped 41 packs to Tennessee; 36 went onward to physicians.",
+        source:"WHO · FDA · U.S. Department of Justice",
+        exploreLabel:"Follow the documented chain ",
         fullLayer:"almanac.html?layer=countries",
         fullLayerLabel:"Return to the regular atlas",
         evidence:{
-          prompt:"What actually moved first: printed rules, a trained teacher, or a ball? Follow the records and decide what each object could—and could not—carry.",
+          prompt:"How many legitimate-looking handoffs can a falsified medicine survive? Follow the counterparty record; the unknown manufacturer, uncertain physical itinerary, and final clinics remain deliberately blank.",
           records:[
             {
-              n:1, color:"#ffe28a", period:"December 1891 / January 1892", type:"Origin record",
-              route:"Springfield, United States",
-              text:"James Naismith devised the game at the International YMCA Training School. Its thirteen rules were published in the school magazine The Triangle in January 1892, giving the new game a portable text.",
-              source:"Springfield College · history and archive", url:"https://springfield.edu/about/birthplace-of-basketball"
+              n:1, color:"#f7dc6f", period:"Before October 2011", type:"WHO reconstruction",
+              route:"Syrian dealer · location not established",
+              text:"WHO reports that an Egyptian businessman said he bought what he believed was Turkish-made medicine from a Syrian dealer. “Syrian” identifies the dealer in the account; it does not establish the product’s manufacturing country or the dealer’s location.",
+              source:"WHO · Global Surveillance and Monitoring System", url:"https://www.who.int/publications/i/item/9789241513425"
             },
             {
-              n:2, color:"#ff9b69", period:"Fall 1892", type:"Named carrier",
-              route:"Springfield → St. Stephen, Canada",
-              text:"Lyman Archibald, a player in Naismith’s first game, became physical director of the St. Stephen YMCA and organized one of Canada’s first basketball games in fall 1892. Library and Archives Canada now identifies an earlier Ottawa record, so this stop follows a named carrier rather than claiming a national first.",
-              source:"Library and Archives Canada", url:"https://thediscoverblog.com/2016/12/21/125-years-ago-today-the-invention-of-basketball-and-the-canadian-participants-in-the-first-ever-basketball-game/"
+              n:2, color:"#f6a15f", period:"Before October 2011", type:"WHO reconstruction",
+              route:"Egyptian buyer · commercial link",
+              text:"The same WHO account says the Egyptian buyer supplied a Swiss company. This is a seller-to-buyer relationship; the report does not establish that the packages physically entered Egypt or identify a handoff address.",
+              source:"WHO · Global Surveillance and Monitoring System", url:"https://www.who.int/publications/i/item/9789241513425"
             },
             {
-              n:3, color:"#f16697", period:"27 December 1893", type:"Federation history",
-              route:"Springfield → Paris, France",
-              text:"The French federation identifies Springfield-trained Melvin Rideout with the game played at 14 rue de Trévise, which it treats as the first documented basketball game in France and Europe.",
-              source:"French Basketball Federation", url:"https://api.ffbb.com/assets/a3fda58c-fc18-467c-860d-ea1cb592aa8e"
+              n:3, color:"#e96c79", period:"Before October 2011", type:"Regulatory reconstruction",
+              route:"Zug, Switzerland · wholesaler",
+              text:"WHO says a Swiss company supplied the Danish company in the chain. A later UK court judgment likewise records that the Danish supplier had sourced the batch from a licensed Swiss wholesaler.",
+              source:"UK High Court · River East Supplies", url:"https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/1942"
             },
             {
-              n:4, color:"#a177e8", period:"1893–94", type:"Attributed introduction",
-              route:"Springfield → Kolkata, India",
-              text:"India’s federation credits T. Duncan Patton, a captain in Naismith’s first game, with bringing basketball to India. Library and Archives Canada uses the more cautious phrase “is said to have introduced” it in 1894, so this stop is intentionally marked as attributed rather than definitive.",
-              source:"Basketball Federation of India", url:"https://www.indiabasketball.org/basketball-in-india-growth-innovation-and-passion.html"
+              n:4, color:"#c153a6", period:"2011", type:"Court record",
+              route:"Denmark · contracting wholesaler",
+              text:"River East told the UK High Court that it bought 167 vials from CareMed, a licensed Danish supplier, in 2011. The judgment records a commercial relationship, not proof that the packages physically entered Denmark.",
+              source:"UK High Court · River East Supplies", url:"https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/1942"
             },
             {
-              n:5, color:"#42b8c6", period:"1894–96", type:"Ball and team",
-              route:"New Haven → São Paulo, Brazil",
-              text:"Brazil’s confederation says Augusto Shaw learned the game at Yale, brought a basketball when he went to teach at Mackenzie College, and organized its first team in 1896. The date range separates the ball’s reported arrival from the surviving team record.",
-              source:"Brazilian Basketball Confederation", url:"https://cbb.com.br/basquete"
+              n:5, color:"#7467d8", period:"2011–January 2012", type:"Court and agency record",
+              route:"United Kingdom · wholesaler",
+              text:"The UK wholesaler sent 41 identified packs to Volunteer Distribution in Tennessee. UK regulators alerted U.S. officials in January 2012 after the batch appeared suspect.",
+              source:"U.S. Department of Justice · Bottomley guilty plea and offer of proof", url:"https://www.justice.gov/usao-mt/pr/paul-daniel-bottomley-pleads-guilty-us-federal-court"
+            },
+            {
+              n:6, color:"#37b6c7", period:"By January 2012", type:"Federal offer of proof",
+              route:"Gainesboro, Tennessee · distributor",
+              text:"DOJ’s offer of proof states that 36 of the 41 packs had already been shipped to U.S. physicians; five were returned to the UK wholesaler. FDA analysis found no bevacizumab, the medicine’s active ingredient.",
+              source:"U.S. Department of Justice · Bottomley guilty plea and offer of proof", url:"https://www.justice.gov/usao-mt/pr/paul-daniel-bottomley-pleads-guilty-us-federal-court"
             }
           ],
           limits:[
-            "This is a selected set of early, sourceable transmissions—not a complete world history and not a claim that these were the only routes.",
-            "A surviving newspaper, federation history, or archive establishes a documented record; it cannot rule out earlier informal play.",
-            "The arcs connect documented origin and destination institutions. They are schematic relationships, not reconstructed travel itineraries.",
-            "Numbers and warm-to-cool hues encode the dates of the selected records. They do not encode popularity, speed, influence, certainty, or national adoption.",
-            "The India attribution is less secure than the Springfield, Canadian, French, and Brazilian records; the map preserves that uncertainty in its wording.",
-            "For Brazil, sources distinguish Shaw’s reported arrival with a ball from the photographed organized team in 1896; the map shows a date range instead of choosing one.",
-            "Country shading marks only the places in this selected evidence chain. It says nothing about where basketball is strongest today."
+            "The manufacturing site is unknown. “Syrian” describes the dealer in the WHO account; Turkey describes the market identity the buyer believed. Neither establishes a factory or a physical waypoint.",
+            "WHO reconstructs the upstream handoffs from regulatory investigations and reporting. A federal offer of proof records the UK-to-Tennessee shipment and onward distribution.",
+            "The upstream arcs show the order of counterparties by their reported national association or company jurisdiction. They do not claim that the packages physically visited every country shown.",
+            "Only Zug and Gainesboro use city-level pins. Syria, Egypt, Denmark, and the United Kingdom are deliberately low-precision associations.",
+            "The 36 physician destinations are not plotted. The public sources identify a distributed group, not a complete set of clinic coordinates.",
+            "The arcs connect documented counterparties. They are schematic relationships, not a reconstruction of flights, ports, roads, or carrier itineraries.",
+            "Number and hue encode counterparty order only. They do not encode guilt, quantity, speed, risk, or national responsibility.",
+            "Countries remain unshaded because the conduct belongs to particular people and companies, not to entire populations or governments."
           ],
           terms:[
-            {term:"Carrier", meaning:"A named person, printed rule set, school, or association for which a source describes movement of the game."},
-            {term:"Documented", meaning:"Supported by a surviving record available to inspect; it does not mean no earlier event occurred."},
-            {term:"Transmission", meaning:"The game or its rules moving between people or institutions; adoption and local reinvention are separate questions."}
+            {term:"Falsified", meaning:"WHO’s term for a medical product whose identity, composition, or source is deliberately misrepresented."},
+            {term:"Counterfeit", meaning:"The term used by FDA and the federal records for this batch; laboratory testing found no active ingredient."},
+            {term:"Counterparty handoff", meaning:"A sourced seller-to-buyer or shipper-to-recipient relationship. It may record a commercial transfer without revealing where the packages physically traveled."}
           ],
           sources:[
-            {label:"Springfield College · birthplace and original rules", url:"https://springfield.edu/about/birthplace-of-basketball"},
-            {label:"Springfield College archive · January 1892 Triangle", url:"https://cdm16122.contentdm.oclc.org/digital/collection/p15370coll2/id/33/"},
-            {label:"Library and Archives Canada · first team and Canadian record", url:"https://thediscoverblog.com/2016/12/21/125-years-ago-today-the-invention-of-basketball-and-the-canadian-participants-in-the-first-ever-basketball-game/"},
-            {label:"French Basketball Federation · Melvin Rideout", url:"https://api.ffbb.com/assets/a3fda58c-fc18-467c-860d-ea1cb592aa8e"},
-            {label:"Basketball Federation of India · T. Duncan Patton", url:"https://www.indiabasketball.org/basketball-in-india-growth-innovation-and-passion.html"},
-            {label:"Brazilian Basketball Confederation · Augusto Shaw", url:"https://cbb.com.br/basquete"}
+            {label:"WHO · Global Surveillance and Monitoring System report", url:"https://www.who.int/publications/i/item/9789241513425"},
+            {label:"UK High Court · River East Supplies, [2017] EWHC 1942", url:"https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/1942"},
+            {label:"FDA · 2012 counterfeit-drug notices and timeline", url:"https://www.fda.gov/drugs/drug-supply-chain-integrity/historical-information-fda-issues-letters-doctors-who-may-have-purchased-counterfeit-or-unapproved"},
+            {label:"DOJ · Paul Daniel Bottomley guilty plea and offer of proof", url:"https://www.justice.gov/usao-mt/pr/paul-daniel-bottomley-pleads-guilty-us-federal-court"},
+            {label:"DOJ · Paul Daniel Bottomley sentencing", url:"https://www.justice.gov/usao-mt/pr/paul-daniel-bottomley-sentenced-us-district-court"},
+            {label:"DOJ · Canada Drugs and River East admissions", url:"https://www.justice.gov/usao-mt/pr/canadian-drug-firm-admits-selling-counterfeit-and-misbranded-prescription-drugs"}
           ]
         }
       },
@@ -408,7 +415,7 @@
     const epoch = Date.UTC(2026, 0, 5);
     const weekNumber = Math.floor((monday.getTime() - epoch) / weekMs);
     // The editorial order is independent of the picker order. This week leaves the
-    // regular layer set for one evidence-led history of a sport in motion.
+    // regular layer set for one bounded, evidence-led illicit-supply case file.
     const rotation = [0,2,3,4,5,1,6,7,8,9,10,11];
     const rotationSlot = ((weekNumber % rotation.length) + rotation.length) % rotation.length;
     const scheduledIndex = rotation[rotationSlot];
@@ -499,7 +506,9 @@
       const fullLayerLink = document.getElementById("full-layer-link");
       fullLayerLink.href = item.fullLayer || `almanac.html?layer=${encodeURIComponent(item.key)}`;
       fullLayerLink.textContent = item.fullLayerLabel || `Show the full ${item.name.toLowerCase()} layer`;
-      document.getElementById("pathway-map").src = `almanac.html?${storyParams}`;
+      const embedParams = new URLSearchParams(storyParams);
+      embedParams.set("embed","1");
+      document.getElementById("pathway-map").src = `almanac.html?${embedParams}`;
       renderEvidence(item);
       document.querySelectorAll("#queue button").forEach((button, buttonIndex) => {
         button.setAttribute("aria-current", buttonIndex === activeIndex ? "true" : "false");
