@@ -1154,7 +1154,7 @@ map.addLayer(countryLabels3D);
 
   wireInteractions();
   buildLayerUI();
-  simEpoch=Date.now(); simDays=0; paused=false; simSpeed=0.5; solarDate=new Date();   // default = 12 sim-hours per real minute (0.5 sim-day/min → one full globe spin per 2 real minutes); rate and date both remain fully manual after this
+  simEpoch=Date.now(); simDays=0; paused=false; simSpeed=_wbRequestedStory?0.15:0.5; solarDate=new Date();   // weekly stories make one quiet turn in about 6m40s; the regular atlas keeps its 2-minute turn
   const _requestedCfg=META.layers.find(l=>l.key===_wbRequestedLayer||l.flowKey===_wbRequestedLayer);
   setLayer(_requestedCfg && _requestedCfg.type!=="flow" ? _requestedCfg.key : "countries");
   wireTimeBar(); try{ initGuide(); }catch(e){} try{ initHint(); }catch(e){} updateTimeLabel();
@@ -1445,14 +1445,14 @@ function startSpin(){
       // actively grab the globe (≈1.2 s), so manual rotation never fights the spin.
       // Atlas deep links keep a requested center; weekly stories use that center only as
       // their opening frame and then resume the automatic rotation.
-      if(!_wbEmbed && (!_wbRequestedCenter||_wbRequestedStory||curatedFlowFocusDismissed) && !subOn && !dragging && (Date.now()-lastInteract>1200)){
+      if((!_wbEmbed||_wbRequestedStory) && (!_wbRequestedCenter||_wbRequestedStory||curatedFlowFocusDismissed) && !subOn && !dragging && (Date.now()-lastInteract>1200)){
         const c=map.getCenter(); c.lng=((c.lng - (simSpeed/60)*360*dt + 540)%360)-180; map.setCenter(c);
       }
       // day/night glides with the spin — refresh ~15 Hz so the terminator never lurches,
       // even at 5 days/min (instead of the old 1 Hz step).
       /* day/night shading now driven every rendered frame by the Three.js earthOccluder shader, not this polygon-grid update */
     }
-    if(flowActive()){                                      // dots ride the master loop, perfectly in sync with the globe
+    if(flowActive() && FLOWS[flowKey].animateDots!==false){ // dots ride the master loop, perfectly in sync with the globe
       if(!FLOWGEO || FLOWGEO.key!==flowKey || FLOWGEO.focus!==flowFocusIso) buildFlowGeo(flowKey);
       const ds=map.getSource("flow-dots"); if(ds) ds.setData(flowDotsFC(((t-flowT0)/9000)%1));
     }
@@ -2283,77 +2283,80 @@ aid:{"label":"Foreign aid flows","group":"Trade & resources","unit":"US$ million
    A story is registered only when its URL is opened, so it can use one bespoke,
    sourced geometry without becoming a permanent menu choice. */
 const WEEKLY_FLOW_REGISTRY = {
-  weekly_basketball_departures: {
+  weekly_avastin_corridor: {
     layer: {
       group: "Weekly story",
-      key: "flow_weekly_basketball_departures",
-      label: "Basketball’s first departures",
+      key: "flow_weekly_avastin_corridor",
+      label: "The counterfeit Avastin chain",
       type: "flow",
-      flowKey: "weekly_basketball_departures",
+      flowKey: "weekly_avastin_corridor",
       hidden: true
     },
     flow: {
-      label: "Basketball’s first departures",
-      group: "Weekly story",
+      label: "The counterfeit Avastin chain",
+      group: "Weekly case file",
       geo: true,
-      showCountryLabels: true,
+      showCountryLabels: false,
       disableCountryFocus: true,
-      highlightCountryColors: {
-        USA:"#6a603a",
-        CAN:"#704737",
-        FRA:"#71394f",
-        IND:"#4f416f",
-        BRA:"#2f626a"
-      },
-      unit: "selected early documentary record",
-      desc: "Four sourceable transmissions of a new game, ordered by the record date at each destination.",
-      color: "#ff9b69",
-      dotColor: "#ffe7d9",
-      legend: "Four early transmissions from the United States, shown as relationships between named institutions and people.",
+      animateDots: false,
+      unit: "documented counterparty relationship",
+      desc: "A WHO-reconstructed supply chain joined to a federal offer of proof for one counterfeit cancer-drug batch.",
+      color: "#37b6c7",
+      dotColor: "#c9fbf4",
+      legend: "A documented chain of sellers and buyers. The arcs do not claim that the packs physically visited every counterparty’s jurisdiction.",
+      sequenceLabel: "Number + hue — counterparty order in the public record:",
       sequence: [
-        {n:1,label:"Springfield",year:"1891",color:"#ffe28a"},
-        {n:2,label:"St. Stephen",year:"1892",color:"#ff9b69"},
-        {n:3,label:"Paris",year:"1893",color:"#f16697"},
-        {n:4,label:"Kolkata",year:"1893–94",color:"#a177e8"},
-        {n:5,label:"São Paulo",year:"1894–96",color:"#42b8c6"}
+        {n:1,label:"Syrian dealer",year:"origin unknown",color:"#f7dc6f"},
+        {n:2,label:"Egyptian buyer",year:"handoff 2",color:"#f6a15f"},
+        {n:3,label:"Swiss wholesaler",year:"handoff 3",color:"#e96c79"},
+        {n:4,label:"Danish wholesaler",year:"handoff 4",color:"#c153a6"},
+        {n:5,label:"UK wholesaler",year:"2011",color:"#7467d8"},
+        {n:6,label:"Tennessee distributor",year:"Jan 2012",color:"#37b6c7"}
       ],
-      countryNote: "Country shade repeats each numbered stop’s color; unshaded countries are simply outside this selected evidence trail.",
-      weightNote: "Hue and number encode documentary chronology only. Line width and moving dots encode no quantity, speed, popularity, influence, or certainty.",
-      note: "Arcs connect the institutions named in the sources. They are schematic relationships, not reconstructed travel tracks or a claim that each destination received the game from the previous one.",
+      countryNote: "Countries remain unshaded: the nodes mark particular counterparties, not national responsibility.",
+      weightNote: "Hue and number encode order. Thin arcs are commercial relationships; the thicker UK–Tennessee arc is a physical shipment described in a federal offer of proof.",
+      note: "The upstream arcs are schematic counterparty links—not reconstructed flights, ports, roads, or carrier itineraries. The unknown manufacturer and final clinics are not invented.",
       sources: [
-        {label:"Springfield College — birthplace and original rules",url:"https://springfield.edu/about/birthplace-of-basketball"},
-        {label:"Library and Archives Canada — first team and Canadian record",url:"https://thediscoverblog.com/2016/12/21/125-years-ago-today-the-invention-of-basketball-and-the-canadian-participants-in-the-first-ever-basketball-game/"},
-        {label:"French Basketball Federation — Melvin Rideout",url:"https://api.ffbb.com/assets/a3fda58c-fc18-467c-860d-ea1cb592aa8e"},
-        {label:"Basketball Federation of India — T. Duncan Patton",url:"https://www.indiabasketball.org/basketball-in-india-growth-innovation-and-passion.html"},
-        {label:"Brazilian Basketball Confederation — Augusto Shaw",url:"https://cbb.com.br/basquete"}
+        {label:"WHO — Global Surveillance and Monitoring System report",url:"https://www.who.int/publications/i/item/9789241513425"},
+        {label:"UK High Court — River East Supplies, [2017] EWHC 1942",url:"https://caselaw.nationalarchives.gov.uk/ewhc/admin/2017/1942"},
+        {label:"FDA — 2012 counterfeit-drug notices and timeline",url:"https://www.fda.gov/drugs/drug-supply-chain-integrity/historical-information-fda-issues-letters-doctors-who-may-have-purchased-counterfeit-or-unapproved"},
+        {label:"DOJ — Bottomley guilty plea and offer of proof",url:"https://www.justice.gov/usao-mt/pr/paul-daniel-bottomley-pleads-guilty-us-federal-court"},
+        {label:"DOJ — Bottomley sentencing",url:"https://www.justice.gov/usao-mt/pr/paul-daniel-bottomley-sentenced-us-district-court"},
+        {label:"DOJ — Canada Drugs and River East admissions",url:"https://www.justice.gov/usao-mt/pr/canadian-drug-firm-admits-selling-counterfeit-and-misbranded-prescription-drugs"}
       ],
       stops: [
-        {n:1,coord:[-72.5898,42.1015],place:"Springfield, United States",year:"1891 / Jan 1892",carrier:"Naismith’s game and the printed rules",color:"#ffe28a"},
-        {n:2,coord:[-67.2817,45.1942],place:"St. Stephen, Canada",year:"fall 1892",carrier:"Lyman Archibald organized one of Canada’s first games",color:"#ff9b69"},
-        {n:3,coord:[2.3522,48.8566],place:"Paris, France",year:"27 Dec 1893",carrier:"Melvin Rideout",color:"#f16697"},
-        {n:4,coord:[88.3639,22.5726],place:"Kolkata, India",year:"1893–94",carrier:"Attributed to T. Duncan Patton",color:"#a177e8"},
-        {n:5,coord:[-46.6333,-23.5505],place:"São Paulo, Brazil",year:"1894–96",carrier:"Augusto Shaw’s ball and Mackenzie team",color:"#42b8c6"}
+        {n:1,coord:[38.9968,34.8021],place:"Syrian dealer · location not established",year:"before Oct 2011",carrier:"Country association only; manufacturing origin unknown",color:"#f7dc6f"},
+        {n:2,coord:[30.8025,26.8206],place:"Egyptian buyer · country association only",year:"before Oct 2011",carrier:"Commercial link; package location not established",color:"#f6a15f"},
+        {n:3,coord:[8.5155,47.1662],place:"Zug, Switzerland · wholesaler",year:"before Oct 2011",carrier:"Commercial link in the WHO and court accounts",color:"#e96c79"},
+        {n:4,coord:[9.5018,56.2639],place:"Denmark · contracting wholesaler",year:"2011",carrier:"Commercial link; not a proven physical waypoint",color:"#c153a6"},
+        {n:5,coord:[-3.4360,55.3781],place:"United Kingdom · wholesaler",year:"2011–Jan 2012",carrier:"Origin of the documented shipment to Tennessee",color:"#7467d8"},
+        {n:6,coord:[-85.6589,36.3556],place:"Gainesboro, Tennessee",year:"by Jan 2012",carrier:"41 packs received; 36 sent onward",color:"#37b6c7"}
       ],
       edges: [
         {
-          from:"USA",to:"CAN",w:1,c:"#ff9b69",dc:"#ffd7c6",
-          nm:"Springfield → St. Stephen",amt:"fall 1892 · Lyman Archibald · one of Canada’s first games",
-          path:[[-72.5898,42.1015],[-67.2817,45.1942]]
+          from:"SYR",to:"EGY",w:.55,c:"#f6a15f",dc:"#ffdfbf",
+          nm:"Syrian dealer → Egyptian buyer",amt:"Commercial relationship in WHO reconstruction · locations and physical itinerary not established",
+          path:[[38.9968,34.8021],[30.8025,26.8206]]
         },
         {
-          from:"USA",to:"FRA",w:1,c:"#f16697",dc:"#ffc9dd",
-          nm:"Springfield → Paris",amt:"27 December 1893 · Melvin Rideout",
-          path:[[-72.5898,42.1015],[2.3522,48.8566]]
+          from:"EGY",to:"CHE",w:.55,c:"#e96c79",dc:"#ffd1d7",
+          nm:"Egyptian buyer → Hadicon, Zug",amt:"Commercial relationship in WHO reconstruction · no proof the packs entered Egypt",
+          path:[[30.8025,26.8206],[8.5155,47.1662]]
         },
         {
-          from:"USA",to:"IND",w:1,c:"#a177e8",dc:"#d9cfff",
-          nm:"Springfield → Kolkata",amt:"1893–94 · attributed to T. Duncan Patton",
-          path:[[-72.5898,42.1015],[88.3639,22.5726]]
+          from:"CHE",to:"DNK",w:.55,c:"#c153a6",dc:"#f2c9e7",
+          nm:"Hadicon → CareMed",amt:"Commercial sale in WHO and UK court accounts · not a reconstructed shipment",
+          path:[[8.5155,47.1662],[9.5018,56.2639]]
         },
         {
-          from:"USA",to:"BRA",w:1,c:"#42b8c6",dc:"#c7f6f3",
-          nm:"New Haven → São Paulo",amt:"1894 arrival account · 1896 organized Mackenzie team · Augusto Shaw",
-          path:[[-72.9279,41.3083],[-46.6333,-23.5505]]
+          from:"DNK",to:"GBR",w:.55,c:"#7467d8",dc:"#d9d3ff",
+          nm:"CareMed → River East",amt:"2011 commercial sale · 167 vials in River East’s court account · Denmark is not a proven physical waypoint",
+          path:[[9.5018,56.2639],[-3.4360,55.3781]]
+        },
+        {
+          from:"GBR",to:"USA",w:1,c:"#37b6c7",dc:"#c9fbf4",
+          nm:"River East → Volunteer Distribution",amt:"Federal offer of proof · 41 packs received in Tennessee · 36 sent onward to U.S. physicians",
+          path:[[-3.4360,55.3781],[-85.6589,36.3556]]
         }
       ]
     }
@@ -3135,6 +3138,10 @@ function flowDotsFC(phase){
 function startFlowAnim(){
   if(flowAnim){ cancelAnimationFrame(flowAnim); flowAnim=null; }
   buildFlowGeo(flowKey);                                   // arc lines built ONCE
+  if(FLOWS[flowKey] && FLOWS[flowKey].animateDots===false){
+    const ds=map.getSource("flow-dots"); if(ds) ds.setData({type:"FeatureCollection",features:[]});
+    if(FLOW3D) FLOW3D.setDots([]);
+  }
   flowT0=performance.now();                                // dots are driven by the master frame loop — in lockstep with the globe spin
 }
 
@@ -3156,7 +3163,7 @@ function drawFlowLegend(key){
   } else {
     if(F.sequence&&F.sequence.length){
       const gradient=F.sequence.map((entry,index)=>`${entry.color} ${Math.round(index/Math.max(1,F.sequence.length-1)*100)}%`).join(",");
-      b+=`<div class="lg-row" style="margin-top:8px;color:var(--muted);font-size:10.5px">Number + hue — date of the selected record:</div>`;
+      b+=`<div class="lg-row" style="margin-top:8px;color:var(--muted);font-size:10.5px">${escapeHTML(F.sequenceLabel||"Number + hue — date of the selected record:")}</div>`;
       b+=`<div class="lg-grad" style="background:linear-gradient(90deg,${gradient})"></div>`;
       b+=`<div class="lg-scale"><span>${escapeHTML(F.sequence[0].year)}</span><span>${escapeHTML(F.sequence[F.sequence.length-1].year)}</span></div>`;
       b+=`<div style="display:flex;flex-wrap:wrap;gap:5px 7px;margin-top:7px">`;
@@ -3167,7 +3174,7 @@ function drawFlowLegend(key){
     }else{
       b+=`<div class="lg-row" style="margin-top:6px"><span style="display:inline-block;width:26px;height:0;border-top:3px solid ${F.color};border-radius:3px;margin-right:8px"></span>flow path</div>`;
     }
-    b+=`<div class="lg-row"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${F.dotColor||'#cfe2ff'};margin:0 12px 0 9px"></span>direction of movement</div>`;
+    if(F.animateDots!==false) b+=`<div class="lg-row"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${F.dotColor||'#cfe2ff'};margin:0 12px 0 9px"></span>direction of movement</div>`;
     if(F.countryNote) b+=`<div class="lg-row" style="color:var(--muted);font-size:10.5px;margin-top:7px;line-height:1.4">${F.countryNote}</div>`;
     if(F.baseColorProp){ b+=`<div class="lg-row" style="margin-top:8px;color:var(--muted);font-size:10.5px">Country shade — ${F.dir==="in"?"total owed":"total lent"}:</div>`+
       `<div class="lg-grad" style="background:linear-gradient(90deg,${F.dir==="in"?"#ffe3b3":"#1a2433"},${F.dir==="in"?"#a01414":F.color})"></div>`+
