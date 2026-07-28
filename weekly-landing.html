@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Worldbook — Tabled weekly pathway</title>
+  <meta name="description" content="A weekly, sourced view of how people, materials, money, and natural systems move around the world.">
+  <meta name="theme-color" content="#07110e">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://worldbook.earth/">
+  <meta property="og:title" content="Worldbook — This week’s pathway">
+  <meta property="og:description" content="A weekly, sourced view of how the world moves.">
+  <meta property="og:image" content="https://worldbook.earth/og.png">
+  <link rel="preconnect" href="https://unpkg.com">
+  <style>
+    :root{
+      --paper:#f1ebda;
+      --paper-dim:#c9c2ad;
+      --ink:#07110e;
+      --night:#07110e;
+      --line:rgba(241,235,218,.18);
+      --accent:#b7ce79;
+      --accent-deep:#8ea14e;
+      --story-rail:clamp(370px,30vw,430px);
+      --serif:Georgia,"Times New Roman",serif;
+      --sans:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+    *{box-sizing:border-box}
+    html{background:var(--night);color:var(--paper);scroll-behavior:smooth}
+    body{margin:0;min-height:100svh;font-family:var(--sans);background:
+      radial-gradient(circle at 75% 30%,rgba(86,117,82,.18),transparent 35%),
+      var(--night);overflow-x:hidden}
+    a{color:inherit}
+    button,a{font:inherit}
+    .skip{position:fixed;left:16px;top:-80px;z-index:20;background:var(--paper);color:var(--ink);padding:10px 14px;border-radius:3px}
+    .skip:focus{top:16px}
+    .shell{min-height:100svh;display:grid;grid-template-rows:auto 1fr auto;padding:22px clamp(20px,4vw,62px) 20px;position:relative}
+    .masthead{display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative;z-index:5}
+    .wordmark{display:inline-flex;align-items:baseline;gap:9px;text-decoration:none;font-weight:760;letter-spacing:-.035em;font-size:19px}
+    .wordmark small{font-size:11px;font-weight:550;letter-spacing:.08em;text-transform:uppercase;color:var(--paper-dim)}
+    .nav{display:flex;align-items:center;gap:9px}
+    .nav a{text-decoration:none;font-size:12px;border:1px solid var(--line);padding:9px 13px;border-radius:999px;transition:.2s ease}
+    .nav a:hover,.nav a:focus-visible{border-color:var(--paper-dim);background:rgba(255,255,255,.05);outline:none}
+    .stage{display:grid;grid-template-columns:minmax(420px,.9fr) minmax(500px,1.1fr);align-items:center;gap:clamp(24px,4vw,64px);padding:clamp(34px,5vh,62px) 0 clamp(24px,4vh,42px);position:relative}
+    .story{position:relative;z-index:4;max-width:660px}
+    .eyebrow{display:flex;align-items:center;gap:10px;color:var(--accent);text-transform:uppercase;letter-spacing:.16em;font-size:11px;font-weight:720;margin-bottom:22px}
+    .eyebrow::before{content:"";display:block;width:28px;height:1px;background:currentColor}
+    h1{font-family:var(--serif);font-weight:400;font-size:clamp(48px,5.4vw,86px);line-height:.94;letter-spacing:-.045em;margin:0;max-width:800px;text-wrap:balance}
+    h1 em{font-style:italic;color:var(--accent)}
+    .dek{font-family:var(--serif);font-size:clamp(17px,1.5vw,22px);line-height:1.45;color:var(--paper-dim);max-width:580px;margin:26px 0 0}
+    .meta{display:flex;flex-wrap:wrap;align-items:center;gap:8px 20px;margin-top:28px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--paper-dim)}
+    .meta span{display:flex;align-items:center;gap:7px}
+    .meta i{width:5px;height:5px;border-radius:50%;background:var(--accent);display:block}
+    .route-key{margin-top:13px;padding:10px 11px;border:1px solid rgba(147,161,181,.22);border-radius:7px;background:rgba(255,255,255,.025)}
+    .route-key[hidden]{display:none}
+    .route-key-title{margin:0 0 7px;color:#aeb9c7;font-size:8.5px;font-weight:750;letter-spacing:.1em;text-transform:uppercase}
+    .route-key-list{display:flex;flex-wrap:wrap;gap:6px 10px}
+    .route-key-item{display:inline-flex;align-items:center;gap:5px;color:#dce3eb;font-size:9.5px;line-height:1.2;white-space:nowrap}
+    .route-key-step{display:inline-flex;align-items:center;gap:2px;font-weight:850}
+    .route-key-dot{display:inline-grid;place-items:center;min-width:16px;height:16px;padding:0 4px;border-radius:999px;color:#07110e;font-size:8px}
+    .actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+    .button{display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:47px;padding:0 18px;border:1px solid var(--paper);border-radius:3px;text-decoration:none;font-size:13px;font-weight:700;transition:transform .18s ease,background .18s ease,color .18s ease}
+    .button.primary{background:var(--paper);color:var(--ink)}
+    .button:hover,.button:focus-visible{transform:translateY(-2px);outline:none}
+    .button.secondary{border-color:var(--line)}
+    .button.secondary:hover{border-color:var(--paper-dim);background:rgba(255,255,255,.04)}
+    .arrow{font-size:17px;line-height:1}
+    .map-frame{height:min(66vh,700px);min-height:470px;position:relative;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:#0b1714;box-shadow:0 30px 90px rgba(0,0,0,.28)}
+    .map-frame::before{content:"";position:absolute;inset:0;z-index:2;pointer-events:none;background:
+      linear-gradient(90deg,rgba(7,17,14,.78) 0,rgba(7,17,14,.12) 20%,transparent 44%),
+      linear-gradient(0deg,rgba(7,17,14,.48),transparent 28%)}
+    .map-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0;filter:saturate(.86) sepia(.08);background:#07110e}
+    .map-label{position:absolute;left:22px;right:22px;bottom:18px;z-index:3;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;pointer-events:none}
+    .map-label strong{font-family:var(--serif);font-size:21px;font-weight:400}
+    .map-label span{display:block;color:var(--paper-dim);font-size:10px;text-transform:uppercase;letter-spacing:.12em;margin-top:4px}
+    .edition{position:absolute;right:18px;top:18px;z-index:3;width:78px;height:78px;border:1px solid rgba(241,235,218,.48);border-radius:50%;display:grid;place-items:center;text-align:center;font-size:9px;line-height:1.4;letter-spacing:.12em;text-transform:uppercase;pointer-events:none;background:rgba(7,17,14,.38);backdrop-filter:blur(6px)}
+    .rail{position:absolute;right:-1px;top:50%;transform:translate(100%,-50%);display:none}
+    .footer{border-top:1px solid var(--line);padding-top:16px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:20px;position:relative;z-index:5;color:var(--paper-dim);font-size:11px}
+    .footer p{margin:0}
+    .footer .rotation{text-transform:uppercase;letter-spacing:.12em}
+    .footer .next{text-align:right}
+    .queue{display:flex;align-items:center;gap:7px;justify-content:center}
+    .queue button{width:8px;height:8px;padding:0;border:1px solid var(--paper-dim);border-radius:50%;background:transparent;cursor:pointer}
+    .queue button[aria-current="true"]{background:var(--accent);border-color:var(--accent)}
+    .queue button:focus-visible{outline:2px solid var(--paper);outline-offset:4px}
+    .noscript{position:fixed;inset:0;z-index:30;display:grid;place-items:center;padding:32px;text-align:center;background:var(--night);font-family:var(--serif);font-size:28px}
+    @media (max-width:980px){
+      .shell{padding:18px 20px 18px}
+      .stage{grid-template-columns:1fr;padding:46px 0 24px}
+      .story{max-width:760px}
+      .map-frame{height:56vh;min-height:430px}
+      .map-frame::before{background:linear-gradient(0deg,rgba(7,17,14,.55),transparent 35%)}
+      .footer{grid-template-columns:1fr auto}
+      .footer .rotation{display:none}
+    }
+    @media (max-width:620px){
+      .masthead{align-items:flex-start}
+      .wordmark small{display:none}
+      .nav a:first-child{display:none}
+      .stage{padding-top:38px;gap:32px}
+      h1{font-size:clamp(45px,14vw,68px)}
+      .dek{font-size:17px}
+      .actions{display:grid;grid-template-columns:1fr}
+      .button{width:100%}
+      .map-frame{height:51vh;min-height:370px}
+      .edition{width:66px;height:66px;font-size:8px}
+      .map-label{left:16px;bottom:14px}
+      .map-label strong{font-size:18px}
+      .footer{grid-template-columns:1fr;gap:10px}
+      .queue{justify-content:flex-start}
+      .footer .next{text-align:left}
+    }
+    @media (prefers-reduced-motion:reduce){
+      html{scroll-behavior:auto}
+      .button,.nav a{transition:none}
+    }
+
+    /* The landing page is the familiar Worldbook UI, opened on a curated live layer.
+       The editorial rail occupies its own space so it never covers the map. */
+    body{overflow:hidden}
+    .shell{display:block;min-height:100svh;padding:0}
+    .masthead,.footer{display:none}
+    .stage{display:block;padding:0}
+    .map-frame{
+      position:fixed;inset:0 var(--story-rail) 0 0;z-index:0;width:auto;height:100svh;min-height:0;
+      border:0;border-radius:0;box-shadow:none
+    }
+    .map-frame::before,.map-label,.edition{display:none}
+    .map-frame iframe{filter:none}
+    .story{
+      position:fixed;z-index:5;inset:0 0 0 auto;width:var(--story-rail);max-width:none;
+      padding:76px 24px 28px;background:#0d121b;border-left:1px solid rgba(147,161,181,.25);
+      border-radius:0;box-shadow:-18px 0 55px rgba(0,0,0,.2);overflow-y:auto
+    }
+    .eyebrow{font-size:9px;margin:0 0 9px;letter-spacing:.14em;color:var(--accent)}
+    .eyebrow::before{width:16px}
+    h1{font-family:var(--sans);font-size:24px;line-height:1.08;font-weight:680;letter-spacing:-.025em}
+    h1 em{font-style:normal}
+    .dek{font-family:var(--sans);font-size:12.5px;line-height:1.45;margin:11px 0 0;color:#b8c2cf}
+    .meta{margin-top:12px;gap:6px 13px;font-size:8.5px;letter-spacing:.09em}
+    .route-key{margin-top:11px}
+    .actions{margin-top:13px}
+    .button{min-height:35px;padding:0 12px;font-size:11px;border-radius:7px}
+    .button.secondary{display:inline-flex;border-color:rgba(147,161,181,.4);color:#c8d1dc}
+    .evidence{margin-top:24px;padding-top:20px;border-top:1px solid rgba(147,161,181,.25)}
+    .evidence[hidden]{display:none}
+    .evidence-kicker{margin:0;color:var(--accent);font-size:9px;font-weight:750;letter-spacing:.14em;text-transform:uppercase}
+    .evidence h2{margin:7px 0 0;font-size:16px;line-height:1.2;letter-spacing:-.015em}
+    .reader-prompt{margin:8px 0 0;padding:11px 12px;border-left:2px solid var(--accent);background:rgba(255,255,255,.035);color:#dbe2eb;font-size:11.5px;line-height:1.5}
+    .records{display:grid;gap:9px;margin-top:15px}
+    .record{position:relative;padding:11px 12px 11px 16px;border:1px solid rgba(147,161,181,.22);border-radius:8px;background:#101722}
+    .record::before{content:"";position:absolute;inset:-1px auto -1px -1px;width:3px;border-radius:8px 0 0 8px;background:var(--record-color,var(--accent))}
+    .record-head{display:flex;align-items:flex-start;justify-content:space-between;gap:9px}
+    .record-order{display:inline-grid;place-items:center;flex:0 0 auto;width:20px;height:20px;margin:-2px 7px -2px 0;border-radius:50%;background:var(--record-color,var(--accent));color:#07110e;font-size:10px;font-weight:850}
+    .record-date{display:flex;align-items:center;min-width:0}
+    .record-period{color:var(--accent);font-size:9px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}
+    .record-type{flex:0 0 auto;padding:2px 5px;border:1px solid rgba(147,161,181,.3);border-radius:999px;color:#aab6c5;font-size:8px;letter-spacing:.06em;text-transform:uppercase}
+    .record h3{margin:6px 0 0;color:#eef2f6;font-size:12px;line-height:1.25}
+    .record p{margin:5px 0 0;color:#aeb9c7;font-size:10.5px;line-height:1.5}
+    .record a,.source-list a{display:inline-block;margin-top:7px;color:var(--accent);font-size:9.5px;text-decoration:none}
+    .record a:hover,.record a:focus-visible,.source-list a:hover,.source-list a:focus-visible{text-decoration:underline;outline:none}
+    .evidence details{margin-top:11px;border-top:1px solid rgba(147,161,181,.18);padding-top:11px}
+    .evidence summary{cursor:pointer;color:#dce3eb;font-size:11px;font-weight:700}
+    .evidence ul{margin:9px 0 0;padding-left:17px;color:#aeb9c7;font-size:10.5px;line-height:1.5}
+    .evidence li+li{margin-top:6px}
+    .terms{display:grid;gap:7px;margin-top:9px}
+    .term{color:#aeb9c7;font-size:10.5px;line-height:1.45}
+    .term b{color:#e5ebf1}
+    .source-list{display:grid;gap:2px;margin-top:6px}
+    @media (max-width:1100px){
+      body{overflow:auto}
+      .stage{display:grid;grid-template-rows:minmax(400px,68svh) auto;min-height:100svh;padding:0;gap:0}
+      .map-frame{position:relative;inset:auto;grid-row:1;width:100%;height:68svh;min-height:400px}
+      .story{
+        position:relative;inset:auto;grid-row:2;width:100%;min-height:32svh;
+        padding:24px 20px calc(28px + env(safe-area-inset-bottom));border-left:0;
+        border-top:1px solid rgba(147,161,181,.25);box-shadow:0 -18px 55px rgba(0,0,0,.2)
+      }
+      h1{font-size:22px}
+      .dek{display:block;font-size:12.5px}
+      .meta{margin-top:10px}
+      .actions{margin-top:12px}
+    }
+    @media (max-width:620px){
+      .stage{grid-template-rows:minmax(390px,64svh) auto}
+      .map-frame{height:64svh;min-height:390px}
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#featured-story">Skip to this week’s story</a>
+  <noscript><div class="noscript">Worldbook needs JavaScript to choose this week’s pathway.</div></noscript>
+  <div class="shell">
+    <header class="masthead">
+      <a class="wordmark" href="./" aria-label="Worldbook home">Worldbook <small>A layered world map</small></a>
+      <nav class="nav" aria-label="Primary navigation">
+        <a href="methodology/">Methodology</a>
+        <a href="index.html?layer=countries">Open the globe&nbsp; ↗</a>
+      </nav>
+    </header>
+
+    <main class="stage" id="featured-story">
+      <article class="story">
+        <div class="eyebrow" id="eyebrow">This week’s pathway</div>
+        <h1 id="headline">The routes that turn <em>forests</em> into lumber, pulp, and paper.</h1>
+        <p class="dek" id="dek">A sourced view of the major timber corridors connecting producing forests to the world’s largest processing and consumer markets.</p>
+        <div class="meta" aria-label="Feature details">
+          <span><i></i><b id="layer-name">Timber &amp; wood</b></span>
+          <span id="date-range">This week</span>
+          <span id="source-name">FAO · UN Comtrade</span>
+        </div>
+        <div class="route-key" id="route-key" aria-label="Highlighted countries and route order" hidden></div>
+        <div class="actions">
+          <a class="button primary" id="explore-link" href="index.html?layer=wood">Open this story <span class="arrow">↗</span></a>
+          <a class="button secondary" id="full-layer-link" href="index.html?layer=wood">Show the full layer</a>
+        </div>
+        <section class="evidence" id="story-evidence" aria-labelledby="evidence-title" hidden>
+          <p class="evidence-kicker">Evidence, not a verdict</p>
+          <h2 id="evidence-title">Read the record</h2>
+          <div id="evidence-content"></div>
+        </section>
+      </article>
+
+      <section class="map-frame" aria-label="Featured pathway map">
+        <iframe id="pathway-map" title="Animated map of this week’s featured global pathway" loading="eager"></iframe>
+        <div class="edition" id="edition-stamp">Weekly<br>edition</div>
+        <div class="map-label">
+          <div><strong id="map-title">Timber &amp; wood</strong><span id="map-group">Trade &amp; resources</span></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p class="rotation">A new corridor story every Monday</p>
+      <div class="queue" id="queue" aria-label="Preview featured pathways"></div>
+      <p class="next">Next week: <span id="next-title">Arms trafficking</span></p>
+    </footer>
+  </div>
+
+  <script>
+    const pathways = [
+      {
+        key:"wood", name:"Timber & wood", group:"Trade & resources", accent:"#b7ce79",
+        view:{center:[82,20],zoom:1.3},
+        corridor:"The wood routes into China",
+        trail:["RUS-CHN","CAN-CHN","USA-CHN","BRA-CHN","NZL-CHN","IDN-CHN","MYS-CHN","DEU-CHN","CHL-CHN","GAB-CHN","COG-CHN","MMR-CHN","PNG-CHN"],
+        headline:"How forests on four continents feed one <em>manufacturing system.</em>",
+        dek:"Logs, sawnwood, and pulp converge on China from boreal forests, plantation economies, and tropical producers — similar-looking arcs carrying very different materials and consequences.",
+        source:"FAO · UN Comtrade"
+      },
+      {
+        key:"duryodhana-trail", storyId:"duryodhana-trail",
+        name:"A statue’s paper trail", group:"Weekly-only case file", accent:"#37b6c7",
+        view:{center:[105,15],zoom:1.55},
+        corridor:"A Cambodian statue’s paper trail",
+        pathCount:5,
+        eyebrow:"This week’s trail · Cambodia to New York and back",
+        headline:"How a Cambodian temple statue reached New York—<em>while its feet stayed behind.</em>",
+        dek:"A U.S. government filing says looters removed this 1,000-year-old stone statue from a Cambodian temple in 1972. Its head was carried into Thailand first, then its body. Later records connect the statue to a British auction house, a Belgian collector, and a New York auction. Its feet stayed at the temple. After the case was settled, the statue returned to Cambodia in 2014.",
+        source:"U.S. court records · UNESCO",
+        exploreLabel:"Follow the statue ",
+        fullLayer:"index.html?layer=countries",
+        fullLayerLabel:"Return to the regular atlas",
+        routeKey:[
+          {label:"Cambodia",steps:[{n:"1",color:"#f1cf5b"},{n:"6",color:"#37b6c7"}],detail:"origin + return"},
+          {label:"Thailand",steps:[{n:"2",color:"#ee955f"}]},
+          {label:"United Kingdom",steps:[{n:"3",color:"#dc6b7f"}]},
+          {label:"Belgium",steps:[{n:"4",color:"#ad5aad"}]},
+          {label:"United States",steps:[{n:"5",color:"#726bd4"}]}
+        ],
+        evidence:{
+          kicker:"One statue · six pieces of evidence",
+          title:"What the records show",
+          prompt:"Start at 1 and follow to 6. The first two points come from the U.S. government’s account of how the statue left Cambodia. The next three are auction and ownership records. The last point is the statue’s return. The case was settled, so a court did not decide whether every allegation was true.",
+          records:[
+            {
+              n:1, color:"#f1cf5b", period:"1972", type:"Court filing",
+              route:"Koh Ker, Cambodia · the feet stayed",
+              text:"The amended complaint alleged that looters separated the head from the torso, then cut the torso from its pedestal at Prasat Chen. The feet remained attached to the pedestal—a physical match between the displaced statue and the temple.",
+              source:"DOJ · amended civil complaint", url:"https://www.justice.gov/usao/nys/pressreleases/May14/CambodianSculptureReturn/Duryodhana%20-%20Cambodian%20Scupture%20-%20Amended%20Complaint.pdf"
+            },
+            {
+              n:2, color:"#ee955f", period:"1972", type:"Government account",
+              route:"Cambodia–Thailand border → Bangkok",
+              text:"According to the government’s reconstruction, the head was transported and transferred to Thai brokers first; the torso followed. Both pieces were delivered through the organized looting network to a dealer in Bangkok.",
+              source:"DOJ · return announcement", url:"https://www.justice.gov/usao-sdny/pr/manhattan-us-attorney-announces-return-10th-century-sandstone-sculpture-kingdom"
+            },
+            {
+              n:3, color:"#dc6b7f", period:"By 1975", type:"Court record",
+              route:"United Kingdom · sold by an auction house",
+              text:"DOJ’s complaint said a Belgian collector bought the statue from a United Kingdom auction house in 1975. The cited DOJ releases do not identify the British city, so the map uses a country-level anchor.",
+              source:"DOJ · original civil complaint announcement", url:"https://www.justice.gov/archive/usao/nys/pressreleases/April12/duryodhanastatueforfeiture.html"
+            },
+            {
+              n:4, color:"#ad5aad", period:"1975–2010", type:"Court record",
+              route:"Belgium · thirty-five years in one collection",
+              text:"The statue remained with the Belgian collector and later his heirs until 2010, when it was consigned to Sotheby’s. The cited DOJ releases do not name a Belgian city or establish the object’s exact storage location.",
+              source:"DOJ · return announcement", url:"https://www.justice.gov/usao-sdny/pr/manhattan-us-attorney-announces-return-10th-century-sandstone-sculpture-kingdom"
+            },
+            {
+              n:5, color:"#726bd4", period:"2010–2014", type:"Court record",
+              route:"New York · the auction was stopped",
+              text:"Sotheby’s imported the statue into the United States in 2010 and offered it for sale in 2011. Cambodia asked that it be withdrawn. A federal civil forfeiture case followed, and a court-approved 2013 settlement required its return.",
+              source:"DOJ · settlement and return", url:"https://www.justice.gov/usao-sdny/pr/manhattan-us-attorney-announces-return-10th-century-sandstone-sculpture-kingdom"
+            },
+            {
+              n:6, color:"#37b6c7", period:"2014", type:"Return record",
+              route:"Phnom Penh, Cambodia · home again",
+              text:"DOJ announced the statue’s return in May 2014. UNESCO records the Duryodhana among the works returned that year and now housed by Cambodia’s National Museum.",
+              source:"UNESCO · National Museum of Cambodia", url:"https://www.unesco.org/en/articles/cambodia-commemorates-101st-anniversary-national-museum-cambodia"
+            }
+          ],
+          limits:[
+            "The outward movement to Bangkok is the U.S. government’s reconstruction in a civil forfeiture complaint. The dispute ended in a settlement rather than a trial verdict.",
+            "The exact Cambodia–Thailand crossing is not identified. The cited DOJ releases identify a UK auction house and a Belgian collector, but not exact cities, custody locations, or transport between those later events.",
+            "The statue moved in pieces on the first leg—the head before the torso. The map uses one line so the sequence remains legible.",
+            "The arcs connect documented or alleged events in order. They do not prove physical travel along every segment or reproduce roads, flights, shipping lanes, or the precise 2014 return itinerary.",
+            "Number and hue encode sequence only. They do not encode guilt, value, speed, distance, or the strength of a country’s connection.",
+            "Highlighted countries identify documented or alleged links in the chain. They do not attribute the conduct of particular people or firms to an entire country."
+          ],
+          terms:[
+            {term:"Civil forfeiture", meaning:"A legal action against property alleged to be connected to unlawful conduct; here, the case settled without a trial verdict."},
+            {term:"Provenance", meaning:"The documented history of an object’s ownership and movement—the paper trail buyers use to judge whether it can be sold legally."},
+            {term:"Repatriation", meaning:"The return of a cultural object to its country of origin."}
+          ],
+          sources:[
+            {label:"DOJ · 2014 return announcement and route summary", url:"https://www.justice.gov/usao-sdny/pr/manhattan-us-attorney-announces-return-10th-century-sandstone-sculpture-kingdom"},
+            {label:"DOJ · amended civil forfeiture complaint", url:"https://www.justice.gov/usao/nys/pressreleases/May14/CambodianSculptureReturn/Duryodhana%20-%20Cambodian%20Scupture%20-%20Amended%20Complaint.pdf"},
+            {label:"DOJ · court-approved settlement and order", url:"https://www.justice.gov/usao/nys/pressreleases/May14/CambodianSculptureReturn/Duryodhana%20-%20Cambodian%20Sculpture%20-%20Settlement%20Stipulation%20and%20Order%20%28Executed%29.pdf"},
+            {label:"DOJ · 2012 civil complaint announcement", url:"https://www.justice.gov/archive/usao/nys/pressreleases/April12/duryodhanastatueforfeiture.html"},
+            {label:"UNESCO · return and National Museum record", url:"https://www.unesco.org/en/articles/cambodia-commemorates-101st-anniversary-national-museum-cambodia"}
+          ]
+        }
+      },
+      {
+        key:"migration", name:"Migration corridors", group:"Human movement", accent:"#79bad0",
+        view:{center:[-88,25],zoom:1.45},
+        corridor:"The many routes into the United States",
+        trail:["MEX-USA","IND-USA","CHN-USA","PHL-USA","PRI-USA"],
+        headline:"One destination, several different <em>migration histories.</em>",
+        dek:"The world’s largest bilateral corridor sits beside routes shaped by study, family, empire, labor, and refuge. Together they show why a single national total explains so little.",
+        source:"UN DESA · UNHCR"
+      },
+      {
+        key:"cables", name:"Submarine cables", group:"Trade & resources", accent:"#84c9b6",
+        view:{center:[-34,20],zoom:1.35},
+        corridor:"The Atlantic cable web",
+        trail:["USA-GBR","USA-FRA","USA-ESP","USA-BRA","PRT-BRA","ESP-ARG"],
+        headline:"The ocean-floor web connecting the <em>Atlantic world.</em>",
+        dek:"Half a dozen landing relationships reveal the physical internet: redundant trans-Atlantic routes, a north–south branch, and named systems such as Dunant and MAREA.",
+        source:"TeleGeography · Google Cloud"
+      },
+      {
+        key:"refugees", name:"Refugee flows", group:"Human movement", accent:"#cfb06f",
+        view:{center:[-67,0],zoom:2.05},
+        corridor:"The Venezuelan displacement corridor",
+        trail:["VEN-COL","VEN-PER","VEN-BRA","VEN-ECU","VEN-CHL"],
+        headline:"How one crisis redrew the human map of <em>South America.</em>",
+        dek:"Routes from Venezuela spread across five neighboring and nearby hosts. Colombia’s 2.8 million is the largest branch, but the bigger story is continental.",
+        source:"UNHCR Global Trends"
+      },
+      {
+        key:"food", name:"Food & grain", group:"Trade & resources", accent:"#d6be67",
+        view:{center:[78,12],zoom:1.3},
+        corridor:"The routes that feed China",
+        trail:["BRA-CHN","ARG-CHN","USA-CHN","UKR-CHN","AUS-CHN"],
+        headline:"Five breadbaskets converging on one immense <em>market.</em>",
+        dek:"Soy, corn, and grain arrive from the Americas, the Black Sea, and Australia. Brazil’s 72.6 million tonnes of soybeans is the largest path in a much bigger supply system.",
+        source:"USDA · FAOSTAT"
+      },
+      {
+        key:"oil", name:"Oil & gas", group:"Trade & resources", accent:"#d08067",
+        view:{center:[70,18],zoom:1.35},
+        corridor:"China’s energy supply web",
+        trail:["SAU-CHN","RUS-CHN","IRQ-CHN","ARE-CHN","KWT-CHN","IRN-CHN","VEN-CHN","AGO-CHN","AUS-CHN"],
+        headline:"Nine energy routes, one question of <em>dependence.</em>",
+        dek:"Crude oil and LNG reach China from the Gulf, Russia, Africa, the Americas, and Australia — a portfolio that is geographically broad but strategically exposed.",
+        source:"EIA · UN Comtrade"
+      },
+      {
+        key:"dust", name:"Saharan dust", group:"Natural systems", accent:"#d9aa72",
+        view:{center:[-29,16],zoom:1.45},
+        corridor:"The trans-Atlantic dust corridor",
+        routes:["Sahara → Amazon","Sahara → Caribbean"],
+        headline:"One desert plume, two ocean-crossing <em>destinations.</em>",
+        dek:"Season shifts the trail: winter–spring dust reaches the Amazon with phosphorus, while the summer plume peaks over the Caribbean.",
+        source:"NASA · Yu et al."
+      },
+      {
+        key:"flyways", name:"Bird migration flyways", group:"Natural systems", accent:"#9cc58b",
+        view:{center:[142,18],zoom:1.2},
+        corridor:"The great Pacific flyways",
+        routes:["East Asian-Australasian Flyway","Pacific/Central Flyway"],
+        headline:"Two aerial highways followed by <em>millions of birds.</em>",
+        dek:"Parallel seasonal systems link Arctic breeding grounds to habitats across Asia, Oceania, and the Americas — stitched together by vulnerable stopovers.",
+        source:"CMS · BirdLife"
+      },
+      {
+        key:"remittances", name:"Remittance corridors", group:"Human movement", accent:"#8fb8d8",
+        view:{center:[-82,15],zoom:1.55},
+        corridor:"The money routes from the United States",
+        trail:["USA-MEX","USA-GTM","USA-DOM","USA-COL","USA-SLV","USA-HND","USA-HTI","USA-ECU","USA-JAM","USA-PER","USA-BRA"],
+        headline:"Eleven financial lifelines, sent home <em>family by family.</em>",
+        dek:"The measured $62.5 billion route to Mexico anchors a wider remittance system tying US wages to households across Latin America and the Caribbean.",
+        source:"World Bank · Banxico"
+      },
+      {
+        key:"shipping", name:"Shipping lanes", group:"Trade & resources", accent:"#78b8bb",
+        view:{center:[112,8],zoom:1.2},
+        corridor:"Asia’s ocean trade fan",
+        routes:["Asia–Europe via Malacca + Suez","Trans-Pacific → US West Coast","Trans-Pacific → Panama Canal"],
+        headline:"Three sea lanes, a handful of <em>narrow places.</em>",
+        dek:"From East Asian ports, trade fans toward Europe, the US West Coast, and Panama. Each branch depends on chokepoints where local disruption becomes global delay.",
+        source:"UNCTAD · EIA"
+      },
+      {
+        key:"aid", name:"Foreign aid flows", group:"Trade & resources", accent:"#bd9ad0",
+        view:{center:[105,20],zoom:1.5},
+        corridor:"Japan’s development-finance network",
+        trail:["JPN-IND","JPN-BGD","JPN-IDN","JPN-PHL","JPN-VNM"],
+        headline:"Five development routes built from <em>loans and infrastructure.</em>",
+        dek:"Japan’s commitments across South and Southeast Asia form a regional system. India’s $5.89 billion is the largest branch, measured in one specific financing instrument.",
+        source:"JICA · National agencies"
+      }
+    ];
+
+    const weekMs = 7 * 24 * 60 * 60 * 1000;
+    const today = new Date();
+    const monday = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
+    monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+    const epoch = Date.UTC(2026, 0, 5);
+    const weekNumber = Math.floor((monday.getTime() - epoch) / weekMs);
+    // The editorial order is independent of the picker order. This week leaves the
+    // regular layer set for one bounded, evidence-led illicit-object case file.
+    const rotation = [0,2,3,4,5,1,6,7,8,9,10,11];
+    const rotationSlot = ((weekNumber % rotation.length) + rotation.length) % rotation.length;
+    const scheduledIndex = rotation[rotationSlot];
+    const nextScheduledIndex = rotation[(rotationSlot + 1) % rotation.length];
+    const requested = new URLSearchParams(location.search).get("preview");
+    const requestedIndex = pathways.findIndex(item => item.key === requested);
+    let activeIndex = requestedIndex >= 0 ? requestedIndex : scheduledIndex;
+
+    const formatDay = (date, includeYear) => date.toLocaleDateString("en-US", {
+      month:"short", day:"numeric", ...(includeYear ? {year:"numeric"} : {}), timeZone:"UTC"
+    });
+    const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+    const dateRange = `${formatDay(monday, false)}–${formatDay(sunday, true)}`;
+
+    const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, character => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+    })[character]);
+
+    function renderEvidence(item){
+      const section = document.getElementById("story-evidence");
+      const content = document.getElementById("evidence-content");
+      if(!item.evidence){
+        section.hidden = true;
+        content.replaceChildren();
+        return;
+      }
+      const evidence = item.evidence;
+      section.querySelector(".evidence-kicker").textContent = evidence.kicker || "Evidence, not a verdict";
+      document.getElementById("evidence-title").textContent = evidence.title || "Read the record";
+      const records = evidence.records.map(record => `
+        <article class="record" style="--record-color:${escapeHTML(record.color || item.accent)}">
+          <div class="record-head">
+            <span class="record-date">${record.n ? `<span class="record-order" aria-label="Stop ${escapeHTML(record.n)}">${escapeHTML(record.n)}</span>` : ""}<span class="record-period">${escapeHTML(record.period)}</span></span>
+            <span class="record-type">${escapeHTML(record.type)}</span>
+          </div>
+          <h3>${escapeHTML(record.route)}</h3>
+          <p>${escapeHTML(record.text)}</p>
+          <a href="${escapeHTML(record.url)}" target="_blank" rel="noopener">Read ${escapeHTML(record.source)} ↗</a>
+        </article>`).join("");
+      const limits = evidence.limits.map(limit => `<li>${escapeHTML(limit)}</li>`).join("");
+      const terms = evidence.terms.map(entry => `
+        <div class="term"><b>${escapeHTML(entry.term)}:</b> ${escapeHTML(entry.meaning)}</div>`).join("");
+      const sources = evidence.sources.map(source => `
+        <a href="${escapeHTML(source.url)}" target="_blank" rel="noopener">${escapeHTML(source.label)} ↗</a>`).join("");
+      content.innerHTML = `
+        <p class="reader-prompt">${escapeHTML(evidence.prompt)}</p>
+        <div class="records">${records}</div>
+        <details open>
+          <summary>What this map cannot tell you</summary>
+          <ul>${limits}</ul>
+        </details>
+        <details>
+          <summary>Three terms, in plain language</summary>
+          <div class="terms">${terms}</div>
+        </details>
+        <details>
+          <summary>Open the primary sources</summary>
+          <div class="source-list">${sources}</div>
+        </details>`;
+      section.hidden = false;
+    }
+
+    function showPathway(index){
+      activeIndex = ((index % pathways.length) + pathways.length) % pathways.length;
+      const item = pathways[activeIndex];
+      document.documentElement.style.setProperty("--accent", item.accent);
+      document.getElementById("eyebrow").textContent = item.eyebrow || `This week’s corridor · ${item.name}`;
+      document.getElementById("headline").innerHTML = item.headline;
+      document.getElementById("dek").textContent = item.dek;
+      document.getElementById("layer-name").textContent = item.corridor;
+      document.getElementById("source-name").textContent = item.source;
+      document.getElementById("date-range").textContent = dateRange;
+      document.getElementById("map-title").textContent = item.corridor;
+      document.getElementById("map-group").textContent = `${item.name} · ${item.group}`;
+      const routeKey = document.getElementById("route-key");
+      if(item.routeKey?.length){
+        const items = item.routeKey.map(entry => {
+          const steps = entry.steps.map(step =>
+            `<span class="route-key-dot" style="background:${escapeHTML(step.color)}">${escapeHTML(step.n)}</span>`
+          ).join("");
+          return `<span class="route-key-item"><span class="route-key-step">${steps}</span><span>${escapeHTML(entry.label)}${entry.detail ? ` · ${escapeHTML(entry.detail)}` : ""}</span></span>`;
+        }).join("");
+        routeKey.innerHTML = `<p class="route-key-title">Highlighted countries · number and hue show order</p><div class="route-key-list">${items}</div>`;
+        routeKey.hidden = false;
+      }else{
+        routeKey.replaceChildren();
+        routeKey.hidden = true;
+      }
+      document.getElementById("next-title").textContent = pathways[nextScheduledIndex].corridor;
+      document.getElementById("edition-stamp").innerHTML = `Edition ${String(weekNumber + 1).padStart(2,"0")}<br>${dateRange.replace("–","—")}`;
+      const storyParams = item.storyId
+        ? new URLSearchParams({story:item.storyId})
+        : new URLSearchParams({layer:item.key});
+      if(!item.storyId && item.trail) storyParams.set("trail",item.trail.join(","));
+      if(!item.storyId && item.routes) storyParams.set("routes",item.routes.join("|"));
+      if(item.view){
+        storyParams.set("center",item.view.center.join(","));
+        storyParams.set("zoom",String(item.view.zoom));
+      }
+      const pathCount = item.pathCount || (item.trail || item.routes || []).length;
+      const exploreLink = document.getElementById("explore-link");
+      exploreLink.href = `index.html?${storyParams}`;
+      exploreLink.childNodes[0].nodeValue = item.exploreLabel || `Open this ${pathCount}-path story `;
+      const fullLayerLink = document.getElementById("full-layer-link");
+      fullLayerLink.href = item.fullLayer || `index.html?layer=${encodeURIComponent(item.key)}`;
+      fullLayerLink.textContent = item.fullLayerLabel || `Show the full ${item.name.toLowerCase()} layer`;
+      const embedParams = new URLSearchParams(storyParams);
+      embedParams.set("embed","1");
+      document.getElementById("pathway-map").src = `index.html?${embedParams}`;
+      renderEvidence(item);
+      document.querySelectorAll("#queue button").forEach((button, buttonIndex) => {
+        button.setAttribute("aria-current", buttonIndex === activeIndex ? "true" : "false");
+      });
+    }
+
+    const queue = document.getElementById("queue");
+    pathways.forEach((item, index) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.setAttribute("aria-label", `Preview ${item.corridor}: ${item.name}`);
+      button.title = item.corridor;
+      button.addEventListener("click", () => showPathway(index));
+      queue.appendChild(button);
+    });
+
+    showPathway(activeIndex);
+  </script>
+</body>
+</html>
